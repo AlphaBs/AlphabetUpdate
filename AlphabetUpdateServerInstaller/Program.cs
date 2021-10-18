@@ -54,18 +54,9 @@ namespace AlphabetUpdateServerInstaller
 
             if (options.NewSecureStorage ?? false)
             {
-                bool useAesSs;
-
-                while (true)
-                {
-                    var ssaes = query("UseSecureAesStorage", app.UseSecureAesStorage.ToString());
-                    if (bool.TryParse(ssaes, out useAesSs))
-                        break;
-                }
-
                 ServerPassword serverPassword;
-                app.UseSecureAesStorage = useAesSs;
-                if (useAesSs)
+                app.UseSecureAesStorage = options.UseSecureAesStorage ?? false;
+                if (app.UseSecureAesStorage)
                 {
                     var (sp, ssAesKey, ssAesIV) = await newSecureAesStorage();
                     app.SecureStorageKey = ssAesKey;
@@ -112,8 +103,9 @@ namespace AlphabetUpdateServerInstaller
             var updateFile = new UpdateFileOptions()
             {
                 Name = query("Name", app.UpdateFile?.Name),
-                Root = query("Root", app.UpdateFile?.Root),
-                Path = query("Path", app.UpdateFile?.Path),
+                BaseUrl = query("BaseUrl", app.UpdateFile?.BaseUrl),
+                InputDir = query("InputDir", app.UpdateFile?.InputDir),
+                OutputDir = query("OutputDir", app.UpdateFile?.OutputDir),
                 LauncherInfoPath = query("LauncherInfoPath", app.UpdateFile?.LauncherInfoPath),
                 FilesCachePath = query("FilesCachePath", app.UpdateFile?.FilesCachePath)
             };

@@ -21,5 +21,10 @@ namespace AlphabetUpdateServerInstaller
             Default = true,
             HelpText = "Create new keys and secure storage")]
         public bool? NewSecureStorage { get; set; }
+        
+        [Option("useSecureAesStorage",
+            Required = false,
+            Default = false)]
+        public bool? UseSecureAesStorage { get; set; }
     }
 }
