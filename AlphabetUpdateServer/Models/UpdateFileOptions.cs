@@ -7,14 +7,16 @@ namespace AlphabetUpdateServer.Models
         public static readonly string UpdateFile = "UpdateFile";
 
         [Required]
-        public string Name { get; init; }
+        public string Name { get; set; }
         [Required]
-        public string Root { get; init; }
+        public string InputDir { get; set; }
         [Required]
-        public string Path { get; init; }
+        public string OutputDir { get; set; }
         [Required]
-        public string LauncherInfoPath { get; init; }
+        public string BaseUrl { get; set; }
         [Required]
-        public string FilesCachePath { get; init; }
+        public string LauncherInfoPath { get; set; }
+        [Required]
+        public string FilesCachePath { get; set; }
     }
 }

@@ -31,26 +31,16 @@ namespace AlphabetUpdateServer.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get()
         {
-            var basePath = options.Root;
-            if (string.IsNullOrEmpty(basePath))
-                basePath = env.WebRootPath;
+            logger.LogInformation("InputDir: {InputDir}, OutputDir: {OutputDir}, BaseUrl: {BaseUrl}",
+                options.InputDir, options.OutputDir, options.BaseUrl);
 
-            var baseUrl = $"{Request.Scheme}://{Request.Host}";
-            var updateFilePath = options.Path;
-
-            logger.LogInformation("basePath: {BasePath}, baseUrl: {BaseUrl}, updatefilePath: {UpdateFilePath}",
-                basePath, baseUrl, updateFilePath);
-
-            if (string.IsNullOrEmpty(basePath))
-                return Problem("invalid basePath");
-
-            if (string.IsNullOrEmpty(baseUrl))
-                return Problem("invalid baseUrl");
-
-            var updateFileGenerator = new UpdateFileGenerator(basePath, baseUrl, updateFilePath);
-            var files = updateFileGenerator.GetTagUpdateFiles();
+            var updateFileGenerator = new UpdateFileGenerator(
+                options.InputDir,
+                options.OutputDir,
+                options.BaseUrl);
+            var files = await updateFileGenerator.GetTagUpdateFiles();
 
             var obj = new UpdateFileCollection
             {

@@ -1,62 +1,102 @@
 ﻿using AlphabetUpdateServer.Models;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Routing;
 
 namespace AlphabetUpdateServer.Core
 {
     public class UpdateFileGenerator
     {
-        public string BasePath { get; private set; }
-        public string UpdateFilePath { get; private set; }
+        public bool ExplictUrl { get; set; }
+        public string DefaultTagName { get; set; } = "common";
+        public string InputDir { get; private set; }
+        public string OutputDir { get; private set; }
         public string BaseUrl { get; private set; }
 
-        public UpdateFileGenerator(string basePath, string baseUrl, string path)
+        public UpdateFileGenerator(string inputDir, string outputDir, string baseUrl)
         {
-            this.BaseUrl = baseUrl;
-            this.BasePath = basePath;
-            this.UpdateFilePath = path;
+            InputDir = inputDir;
+            OutputDir = outputDir;
+            BaseUrl = baseUrl;
         }
 
-        public UpdateFile[] GetTagUpdateFiles()
+        private string normalizePath(string path)
+        {
+            return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
+                .Trim(Path.DirectorySeparatorChar);
+        }
+
+        public async Task<UpdateFile[]> GetTagUpdateFiles()
         {
             var list = new List<UpdateFile>();
-            var filesPath = Path.Combine(this.BasePath, this.UpdateFilePath);
-
-            foreach (var tag in new DirectoryInfo(filesPath).GetDirectories())
+            foreach (var tag in new DirectoryInfo(InputDir).GetDirectories())
             {
-                var midPath = $"{this.UpdateFilePath}/{tag.Name}";
-                var files = GetUpdateFiles(midPath, new [] { tag.Name });
+                var files = await GetUpdateFiles(tag.Name, new [] { tag.Name });
                 list.AddRange(files);
             }
 
             return list.ToArray();
         }
 
-        private UpdateFile[] GetUpdateFiles(string midPath, string[] tags)
+        private async Task<UpdateFile[]> GetUpdateFiles(string midPath, string[] tags)
         {
             var list = new List<UpdateFile>();
 
-            var path = Path.Combine(BasePath, midPath).Replace('/','\\');
+            var path = Path.Combine(InputDir, midPath);
             var dir = new DirectoryInfo(path);
             var files = dir.GetFiles("*.*", SearchOption.AllDirectories);
+            
+            var outFilesArr = Directory.GetFiles(OutputDir, "*.*", SearchOption.AllDirectories)
+                .Select(x => normalizePath(x).ToLowerInvariant());
+            var outFiles = new HashSet<string>(outFilesArr);
+
+            string? tagStr;
+            if (tags.Length == 1 && tags[0] == DefaultTagName)
+                tagStr = null;
+            else
+                tagStr = string.Join(',', tags);
 
             foreach (var file in files)
             {
-                var filePath = file.FullName
-                    .Replace(path, "")
-                    .Replace('\\', '/')
-                    .Trim('/');
+                var underPath = file.FullName
+                    .Replace(path, "");
+                underPath = normalizePath(underPath);
 
+                var outFilePath = normalizePath(Path.Combine(OutputDir, underPath));
+                var outFileDirPath = Path.GetDirectoryName(outFilePath);
+                if (!string.IsNullOrEmpty(outFileDirPath) && !Directory.Exists(outFileDirPath))
+                    Directory.CreateDirectory(outFileDirPath);
+
+                var outputStream = Util.CreateAsyncReadStream(file.FullName);
+                var copyTask = Util.CopyFileAsync(outputStream, outFilePath);
+
+                string escapedPath = underPath.Replace('\\', '/');
+                string? url = null;
+                if (ExplictUrl)
+                    url = $"{BaseUrl}/{escapedPath}";
+                
                 var f = new UpdateFile
                 {
-                    Hash = Util.Md5(file.FullName),
-                    Path = filePath,
-                    Url = $"{BaseUrl}/{midPath}/{filePath.Replace('\\', '/')}",
-                    Tags = string.Join(',', tags)
+                    Hash = Util.Md5(outputStream),
+                    Path = escapedPath,
+                    Tags = tagStr,
+                    Url = url
                 };
+                
                 list.Add(f);
+                outFiles.Remove(outFilePath.ToLowerInvariant());
+
+                await copyTask;
+                await outputStream.DisposeAsync();
             }
 
+            foreach (var remainOutFile in outFiles)
+            {
+                File.Delete(remainOutFile);
+            }
+            
             return list.ToArray();
         }
     }

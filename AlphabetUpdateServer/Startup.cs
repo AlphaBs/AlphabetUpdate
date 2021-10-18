@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using AlphabetUpdateServer.Models;
 using AlphabetUpdateServer.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -16,13 +18,26 @@ namespace AlphabetUpdateServer
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
-            Configuration = configuration;
+            this.configuration = configuration; 
+            this.environment = env;
         }
 
-        public IConfiguration Configuration { get; }
+        private readonly IConfiguration configuration;
+        private readonly IWebHostEnvironment environment;
 
+        private string resolvePath(string path)
+        {
+            var fullPath = path.Replace("[root]", environment.WebRootPath);
+            fullPath = Path.GetFullPath(fullPath);
+
+            if (!Directory.Exists(fullPath))
+                Directory.CreateDirectory(fullPath);
+
+            return fullPath;
+        }
+        
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -32,25 +47,36 @@ namespace AlphabetUpdateServer
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AlphabetUpdateServer", Version = "v1" });
             });
 
-            var updateFileOptions = Configuration.GetSection(UpdateFileOptions.UpdateFile);
-            services.Configure<UpdateFileOptions>(updateFileOptions);
+            var updateFileConf = configuration.GetSection(UpdateFileOptions.UpdateFile);
+            var updateFileOptions = new UpdateFileOptions();
+            updateFileConf.Bind(updateFileOptions);
 
-            var authOptions = Configuration.GetSection(AuthOptions.Auth);
-            services.Configure<AuthOptions>(authOptions);
+            updateFileOptions.BaseUrl.Trim('/');
+            updateFileOptions.InputDir = resolvePath(updateFileOptions.InputDir);
+            updateFileOptions.OutputDir = resolvePath(updateFileOptions.OutputDir);
             
-            if (Configuration.GetValue<bool>("UseSecureAesStorage"))
+            services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.Auth));
+            services.Configure<UpdateFileOptions>(configuration.GetSection(UpdateFileOptions.UpdateFile));
+            services.PostConfigure<UpdateFileOptions>(options =>
+            {
+                options.InputDir = resolvePath(options.InputDir);
+                options.OutputDir = resolvePath(options.OutputDir);
+                options.BaseUrl = options.BaseUrl.Trim('/');
+            });
+            
+            if (configuration.GetValue<bool>("UseSecureAesStorage"))
                 services.AddSingleton<ISecureStorage, SecureAesStorage>();
             else
                 services.AddSingleton<ISecureStorage, SecureConfigStorage>();
 
-            var secretKey = Convert.FromBase64String(Configuration["SecureStorage:SecretKey"]);
+            var secretKey = Convert.FromBase64String(configuration["SecureStorage:SecretKey"]);
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
-                        ValidIssuer = Configuration["Auth:Issuer"],
+                        ValidIssuer = configuration["Auth:Issuer"],
                         ValidateAudience = false,
                         ValidateIssuerSigningKey = true,
                         IssuerSigningKey = new SymmetricSecurityKey(secretKey)
@@ -65,12 +91,10 @@ namespace AlphabetUpdateServer
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
+        public void Configure(IApplicationBuilder app, ILogger<Startup> logger)
         {
-            if (env.IsDevelopment())
+            if (environment.IsDevelopment())
             {
-                logger.LogInformation("Development mode");
-
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "AlphabetUpdateServer v1"));
@@ -103,6 +127,8 @@ namespace AlphabetUpdateServer
             {
                 endpoints.MapControllers();
             });
+            
+            logger.LogInformation("WebRootPath: {WebRootPath}", environment.WebRootPath);
         }
     }
 }
