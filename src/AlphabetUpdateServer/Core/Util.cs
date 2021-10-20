@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Text.Json;
@@ -13,7 +14,8 @@ namespace AlphabetUpdateServer.Core
         public static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            IgnoreNullValues = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
 
         public static string Md5(string path)
@@ -44,7 +46,7 @@ namespace AlphabetUpdateServer.Core
 
         public static async Task<string> WriteJson(string path, object? obj)
         {
-            var content = JsonSerializer.Serialize(obj);
+            var content = JsonSerializer.Serialize(obj, JsonOptions);
             await File.WriteAllTextAsync(path, content);
             return content;
         }
@@ -64,6 +66,35 @@ namespace AlphabetUpdateServer.Core
         {
             await using var destinationStream = new FileStream(destinationFile, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
             await sourceStream.CopyToAsync(destinationStream);
+        }
+        
+        public static void DeleteEmptyDirs(string dir)
+        {
+            if (string.IsNullOrEmpty(dir))
+                throw new ArgumentException(
+                    "Starting directory is a null reference or an empty string", 
+                    "dir");
+            
+            try
+            {
+                foreach (var d in Directory.EnumerateDirectories(dir))
+                {
+                    DeleteEmptyDirs(d);
+                }
+
+                var entries = Directory.EnumerateFileSystemEntries(dir);
+
+                if (!entries.Any())
+                {
+                    try
+                    {
+                        Directory.Delete(dir);
+                    }
+                    catch (UnauthorizedAccessException) { }
+                    catch (DirectoryNotFoundException) { }
+                }
+            }
+            catch (UnauthorizedAccessException) { }
         }
     }
 }

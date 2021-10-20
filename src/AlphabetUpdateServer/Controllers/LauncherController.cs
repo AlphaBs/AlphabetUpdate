@@ -5,7 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 
@@ -18,6 +22,7 @@ namespace AlphabetUpdateServer.Controllers
     {
         private readonly ILogger<LauncherController> logger;
 
+        private readonly UpdateFileOptions options;
         private readonly string launcherInfoPath;
         private readonly string filesPath;
         private readonly string launcherCachePath;
@@ -29,7 +34,7 @@ namespace AlphabetUpdateServer.Controllers
         {
             logger = _logger;
             IWebHostEnvironment env = _env;
-            UpdateFileOptions options = _options.Value;
+            options = _options.Value;
             
             launcherInfoPath = Path.Combine(env.WebRootPath, options.LauncherInfoPath);
             filesPath = Path.Combine(env.WebRootPath, options.FilesCachePath);
@@ -63,6 +68,38 @@ namespace AlphabetUpdateServer.Controllers
 
             if (updateFiles.Files == null)
                 return BadRequest("No Files");
+
+            var outFilesArr = Directory.GetFiles(options.OutputDir, "*.*", SearchOption.AllDirectories);
+            var outFilesSet = new HashSet<string>(outFilesArr);
+
+            foreach (var inFile in updateFiles.Files)
+            {
+                if (string.IsNullOrEmpty(inFile.Path))
+                    return BadRequest("One of files does not have a path");
+
+                var path = normalizePath(inFile.Path);
+                var realPath = Path.Combine(options.InputDir, path);
+
+                if (!System.IO.File.Exists(realPath))
+                    return BadRequest("Cannot find file: " + inFile.Path);
+
+                var outFilePath = Path.Combine(options.OutputDir, path);
+                var outFileDir = Path.GetDirectoryName(outFilePath);
+                if (!string.IsNullOrEmpty(outFileDir) && !Directory.Exists(outFileDir))
+                    Directory.CreateDirectory(outFileDir);
+                
+                System.IO.File.Copy(realPath, outFilePath, overwrite: true);
+                logger.LogInformation("Copy update file: {Input} -> {Output}", realPath, outFilePath);
+                outFilesSet.Remove(outFilePath.ToLowerInvariant());
+            }
+
+            foreach (var remainFile in outFilesSet)
+            {
+                System.IO.File.Delete(remainFile);
+                logger.LogInformation("Delete remain file: {Name}", remainFile);
+            }
+            
+            Util.DeleteEmptyDirs(options.OutputDir);
             
             updateFiles.LastUpdate = DateTime.Now;
 
@@ -108,6 +145,12 @@ namespace AlphabetUpdateServer.Controllers
             System.IO.File.Delete(launcherInfoPath);
             logger.LogInformation("delete launcher info file: {Path}", launcherInfoPath);
             return NoContent();
+        }
+        
+        private string normalizePath(string path)
+        {
+            return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
+                .Trim(Path.DirectorySeparatorChar);
         }
 
         private async Task<string> updateCache(LauncherInfo? launcherInfo, UpdateFileCollection? updateFiles)

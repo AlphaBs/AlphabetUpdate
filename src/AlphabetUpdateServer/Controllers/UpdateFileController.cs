@@ -31,16 +31,15 @@ namespace AlphabetUpdateServer.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public IActionResult Get()
         {
             logger.LogInformation("InputDir: {InputDir}, OutputDir: {OutputDir}, BaseUrl: {BaseUrl}",
                 options.InputDir, options.OutputDir, options.BaseUrl);
 
             var updateFileGenerator = new UpdateFileGenerator(
                 options.InputDir,
-                options.OutputDir,
-                options.BaseUrl);
-            var files = await updateFileGenerator.GetTagUpdateFiles();
+                options.OutputDir);
+            var files = updateFileGenerator.GetUpdateFiles();
 
             var obj = new UpdateFileCollection
             {
@@ -49,7 +48,7 @@ namespace AlphabetUpdateServer.Controllers
                 Files = files
             };
 
-            var json = JsonSerializer.Serialize(obj);
+            var json = JsonSerializer.Serialize(obj, Util.JsonOptions);
             return Ok(json);
         }
     }
