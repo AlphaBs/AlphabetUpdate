@@ -1,0 +1,34 @@
+version: "3.7"
+services:
+  asp:
+    image: ksi123456ab/alphabet-update-server
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./volume:/volume
+
+  nginx:
+    image: nginx
+    ports:
+      - "8121:80"
+    volumes:
+      - ./volume/nginx.conf:/etc/nginx/nginx.conf
+      - ./volume/out:/volume/out
+
+  vsftpd:
+    image: fauria/vsftpd
+    environment:
+      FTP_USER: admin
+      FTP_PASS: pass
+      PASV_ADDRESS: localhost
+      PASV_ADDR_RESOLVE: yes
+      PASV_ENABLE: yes
+      PASV_MIN_PORT: 30000
+      PASV_MAX_PORT: 30010
+      LOG_STDOUT: "true"
+    ports:
+      - "20:20"
+      - "21:21"
+      - "30000:30010"
+    volumes:
+      - ./volume/in:/home/vsftpd
