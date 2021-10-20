@@ -8,6 +8,7 @@ using AlphabetUpdateServer.Models;
 using AlphabetUpdateServer.Services;
 using Newtonsoft.Json.Linq;
 using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AlphabetUpdateServerInstaller
 {
@@ -15,7 +16,7 @@ namespace AlphabetUpdateServerInstaller
     {
         static void Main(string[] args)
         {
-            args = "--appSettings=false --secureStorage=true".Split(' ');
+            //args = "--appSettings=false --secureStorage=true".Split(' ');
 
             var parser = new Parser(settings =>
             {
@@ -88,6 +89,8 @@ namespace AlphabetUpdateServerInstaller
                 Console.WriteLine("==========");
                 Console.WriteLine(JsonSerializer.Serialize(serverPassword));
                 Console.WriteLine("==========");
+                
+                //await testServerPassword(serverPassword);
             }
 
             Console.WriteLine("Writing app settings...");
@@ -213,6 +216,20 @@ namespace AlphabetUpdateServerInstaller
             await File.WriteAllTextAsync(options.AppSettingsPath, jobj.ToString());
         }
 
+        static async Task testServerPassword(ServerPassword serverPassword)
+        {
+            var aes = new AesWrapper(serverPassword.AesKey, serverPassword.AesIv);
+            var ms = new MemoryStream();
+            await aes.AesEncrypt(new LoginModel
+            {
+                Name = "devTest",
+                Host = "127.0.0.1",
+                Password = serverPassword.RawPassword
+            }, ms);
+            var reqStr = Convert.ToBase64String(ms.ToArray());
+            Console.WriteLine(reqStr);
+        }
+        
         static async Task test(string key, string iv)
         {
             using var aes = Aes.Create();

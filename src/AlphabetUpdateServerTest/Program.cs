@@ -35,9 +35,9 @@ namespace AlphabetUpdateServerTest
                 Host = "127.0.0.1",
                 Password = rawPassword
             }, ms);
+            var reqStr = Convert.ToBase64String(ms.ToArray());
 
             var http = new HttpClient();
-            var reqStr = Convert.ToBase64String(ms.ToArray());
             Console.WriteLine(reqStr);
             var reqContent = new StringContent(reqStr);
             reqContent.Headers.ContentType = MediaTypeHeaderValue.Parse("text/plain");
