@@ -8,27 +8,23 @@ services:
       - ./volume:/volume
 
   nginx:
-    image: nginx
+    image: nginx:1.21-alpine
     ports:
-      - "8121:80"
+      - "${NGINX_PORT-80}:80"
     volumes:
       - ./volume/nginx.conf:/etc/nginx/nginx.conf
       - ./volume/out:/volume/out
 
   vsftpd:
-    image: fauria/vsftpd
+    image: bogem/ftp
     environment:
-      FTP_USER: admin
-      FTP_PASS: pass
-      PASV_ADDRESS: localhost
-      PASV_ADDR_RESOLVE: yes
-      PASV_ENABLE: yes
-      PASV_MIN_PORT: 30000
-      PASV_MAX_PORT: 30010
+      FTP_USER: ${FTP_USER-admin}
+      FTP_PASS: ${FTP_PASS:?ftp_pass}
+      PASV_ADDRESS: ${SERVER_HOST:?host}
       LOG_STDOUT: "true"
     ports:
       - "20:20"
       - "21:21"
-      - "30000:30010"
+      - "${FTP_PASVPORT-47470}-${FTP_PASVPORT-47470}:47470-47470"
     volumes:
       - ./volume/in:/home/vsftpd
