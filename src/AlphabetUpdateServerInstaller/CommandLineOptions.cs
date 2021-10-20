@@ -26,5 +26,10 @@ namespace AlphabetUpdateServerInstaller
             Required = false,
             Default = false)]
         public bool? UseSecureAesStorage { get; set; }
+
+        [Option("debug",
+            Required = false,
+            Default = false)]
+        public bool Debug { get; set; }
     }
 }

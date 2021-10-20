@@ -36,15 +36,19 @@ namespace AlphabetUpdateServer.Controllers
             IWebHostEnvironment env = _env;
             options = _options.Value;
             
-            launcherInfoPath = Path.Combine(env.WebRootPath, options.LauncherInfoPath);
-            filesPath = Path.Combine(env.WebRootPath, options.FilesCachePath);
-            launcherCachePath = Path.Combine(env.WebRootPath, "launcher.json");
+            var webRoot = env.WebRootPath ?? env.ContentRootPath ?? "./";
+            launcherInfoPath = Path.Combine(webRoot, options.LauncherInfoPath);
+            filesPath = Path.Combine(webRoot, options.FilesCachePath);
+            launcherCachePath = Path.Combine(webRoot, "launcher.json");
         }
 
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> Get()
         {
+            if (!System.IO.File.Exists(launcherCachePath))
+                return Problem("no cache");
+                
             var json = await System.IO.File.ReadAllTextAsync(launcherCachePath);
             return Ok(json);
         }

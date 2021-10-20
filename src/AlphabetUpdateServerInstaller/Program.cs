@@ -90,7 +90,11 @@ namespace AlphabetUpdateServerInstaller
                 Console.WriteLine(JsonSerializer.Serialize(serverPassword));
                 Console.WriteLine("==========");
                 
-                //await testServerPassword(serverPassword);
+                if (options.Debug)
+                {
+                    Console.WriteLine("Generated server password: ");
+                    await testServerPassword(serverPassword);
+                }
             }
 
             Console.WriteLine("Writing app settings...");
