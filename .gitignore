@@ -227,4 +227,4 @@ __pycache__/
 Thumbs.db
 
 appsettings.Development.json
-AlphabetUpdateServer/wwwroot
+wwwroot
