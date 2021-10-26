@@ -21,9 +21,10 @@ namespace AlphabetUpdateServer.Core
         public AesWrapper(string key, string iv)
         {
             aes = Aes.Create();
+            aes.Mode = CipherMode.CBC;
             aes.Key = Convert.FromBase64String(key);
             aes.IV = Convert.FromBase64String(iv);
-            aes.Padding = PaddingMode.Zeros;
+            aes.Padding = PaddingMode.PKCS7;
         }
 
         private readonly Aes aes;
