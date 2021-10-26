@@ -229,3 +229,5 @@ Thumbs.db
 appsettings.Development.json
 wwwroot
 installer.tar.gz
+app.tar.gz
+volume/appsettings.json
