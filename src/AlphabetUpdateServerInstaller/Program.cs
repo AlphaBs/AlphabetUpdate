@@ -16,7 +16,7 @@ namespace AlphabetUpdateServerInstaller
     {
         static void Main(string[] args)
         {
-            //args = "--appSettings=false --secureStorage=true".Split(' ');
+            //args = "--appSettings=false --secureStorage=true --debug=true".Split(' ');
 
             var parser = new Parser(settings =>
             {
@@ -142,7 +142,8 @@ namespace AlphabetUpdateServerInstaller
 
             // password KEY/IV
             using var passwordAes = Aes.Create();
-            passwordAes.Padding = PaddingMode.Zeros;
+            passwordAes.Mode = CipherMode.CBC;
+            passwordAes.Padding = PaddingMode.PKCS7;
             var passwordAesKey = Convert.ToBase64String(passwordAes.Key);
             var passwordAesIV = Convert.ToBase64String(passwordAes.IV);
             
@@ -173,9 +174,10 @@ namespace AlphabetUpdateServerInstaller
             
             // secure storage KEY/IV
             using var ssAes = Aes.Create();
+            ssAes.Mode = CipherMode.CBC;
             var ssAesKey = Convert.ToBase64String(ssAes.Key);
             var ssAesIV = Convert.ToBase64String(ssAes.IV);
-            ssAes.Padding = PaddingMode.Zeros;
+            ssAes.Padding = PaddingMode.PKCS7;
 
             Console.WriteLine("Writing SecureStorage...");
 
@@ -230,16 +232,19 @@ namespace AlphabetUpdateServerInstaller
                 Host = "127.0.0.1",
                 Password = serverPassword.RawPassword
             }, ms);
-            var reqStr = Convert.ToBase64String(ms.ToArray());
-            Console.WriteLine(reqStr);
+            ms.Position = 0;
+            var res = await aes.AesDecrypt<LoginModel>(ms);
+            Console.WriteLine(JsonSerializer.Serialize(res));
+            await ms.DisposeAsync();
         }
         
         static async Task test(string key, string iv)
         {
             using var aes = Aes.Create();
+            aes.Mode = CipherMode.CBC;
             aes.Key = Convert.FromBase64String(key);
             aes.IV = Convert.FromBase64String(iv);
-            aes.Padding = PaddingMode.Zeros;
+            aes.Padding = PaddingMode.PKCS7;
 
             var ss = SecureAesStorage.FromAes(aes);
             var obj = await ss.Load();
