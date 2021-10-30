@@ -1,16 +1,16 @@
 #! /bin/bash
 
 if [[ $1 == "install" ]]; then
-    docker-compose up -d
-    docker exec -it $(docker-compose ps -q asp) dotnet AlphabetUpdateServerInstaller.dll --debug
-    docker exec -d $(docker-compose ps -q asp) dotnet AlphabetUpdateServer.dll
+    docker-compose run asp-install
 elif [[ $1 == "start" ]]; then
     docker-compose up -d
-    docker exec -d $(docker-compose ps -q asp) dotnet AlphabetUpdateServer.dll
 elif [[ $1 == "stop" ]]; then
-    docker stop $(docker-compose ps -q)
-elif [[ $1 == "clean" ]]; then
-    docker rm -f $(docker-compose ps -q)
+    docker-compose stop
+elif [[ $1 == "down" ]]; then
+    docker-compose down
+elif [[ $1 == "build" ]]; then
+    docker build -t ksi123456ab/alphabet-update-server .
+    ./create_installer.sh
 else
     echo "No matching command"
 fi

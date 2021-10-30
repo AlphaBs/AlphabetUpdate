@@ -1,16 +1,19 @@
 using System;
 using System.IO;
+using System.Net;
+using System.Threading.Tasks;
 using AlphabetUpdateServer.Models;
 using AlphabetUpdateServer.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -107,16 +110,16 @@ namespace AlphabetUpdateServer
             }
 
             var ss = app.ApplicationServices.GetService<ISecureStorage>();
-            if (ss != null)
-                ss.Load().GetAwaiter().GetResult();
+            ss?.Load().GetAwaiter().GetResult();
             
-            app.UseHttpsRedirection();
-
-            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            //app.UseHttpsRedirection();
+            var forwardedOptions = new ForwardedHeadersOptions
             {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-                                   ForwardedHeaders.XForwardedProto
-            });
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            };
+            forwardedOptions.KnownProxies.Clear();
+            forwardedOptions.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("172.16.0.0"), 12));
+            app.UseForwardedHeaders(forwardedOptions);
 
             app.UseRouting();
 

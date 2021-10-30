@@ -18,3 +18,5 @@ RUN dotnet publish -c Release -o /out --no-restore
 FROM mcr.microsoft.com/dotnet/aspnet:5.0
 WORKDIR /app
 COPY --from=build-env /out .
+COPY ./start_update_server.sh /app/start_update_server.sh
+CMD ["/bin/bash", "/app/start_update_server.sh"]
