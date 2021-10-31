@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AlphabetUpdate.Common.Helpers;
 using Microsoft.AspNetCore.Authorization;
 
 namespace AlphabetUpdateServer.Controllers
@@ -73,6 +74,8 @@ namespace AlphabetUpdateServer.Controllers
             if (updateFiles.Files == null)
                 return BadRequest("No Files");
 
+            if (!Directory.Exists(options.OutputDir))
+                Directory.CreateDirectory(options.OutputDir);
             var outFilesArr = Directory.GetFiles(options.OutputDir, "*.*", SearchOption.AllDirectories);
             var outFilesSet = new HashSet<string>(outFilesArr);
 

@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using AlphabetUpdate.Common.Services;
 using AlphabetUpdateServer.Core;
 using AlphabetUpdateServer.Models;
 
@@ -23,11 +24,11 @@ namespace AlphabetUpdateServerTest
             //    "`"));
             //var ssObj = await ss.Load();
 
-            var rawPassword = "`";
-            var aesKey = "`";
-            var aesIv = "`";
+            var rawPassword = "87c919dbcabc415192b1a1abb2cb33c8";
+            var aesKey = "KI8J25mDMV2f/Gdhcm10erb1/egVPD2ucOkjJxlOtzw=";
+            var aesIv = "hl\u002BW6JC7TMWwLbwRzuTTIg==";
             
-            var aes = new AesWrapper(aesKey, aesIv);
+            var aes = new AesObjectService(aesKey, aesIv);
             var ms = new MemoryStream();
             await aes.AesEncrypt(new LoginModel
             {
@@ -39,9 +40,10 @@ namespace AlphabetUpdateServerTest
 
             var http = new HttpClient();
             Console.WriteLine(reqStr);
+            //return;
             var reqContent = new StringContent(reqStr);
             reqContent.Headers.ContentType = MediaTypeHeaderValue.Parse("text/plain");
-            var res = await http.PostAsync("https://localhost:5001/v1/Auth/login", reqContent);
+            var res = await http.PostAsync("http://localhost:5000/v1/auth/login", reqContent);
 
             var content = await res.Content.ReadAsStringAsync();
             Console.WriteLine(content);

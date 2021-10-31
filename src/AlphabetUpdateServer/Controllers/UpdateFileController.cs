@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using AlphabetUpdate.Common.Helpers;
 using Microsoft.AspNetCore.Authorization;
 
 namespace AlphabetUpdateServer.Controllers
@@ -48,7 +49,7 @@ namespace AlphabetUpdateServer.Controllers
                 Files = files
             };
 
-            var json = JsonSerializer.Serialize(obj, Util.JsonOptions);
+            var json = JsonSerializer.Serialize(obj, JsonHelper.JsonOptions);
             return Ok(json);
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AlphabetUpdate.Common.Helpers;
 using Microsoft.AspNetCore.Routing;
 
 namespace AlphabetUpdateServer.Core
@@ -40,7 +41,7 @@ namespace AlphabetUpdateServer.Core
                 string escapedPath = underPath.Replace('\\', '/');
                 var f = new UpdateFile
                 {
-                    Hash = Util.Md5(file.FullName),
+                    Hash = CryptoHelper.HashMd5(file.FullName),
                     Path = escapedPath,
                     Tags = null,
                     Url = null

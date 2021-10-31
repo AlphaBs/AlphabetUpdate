@@ -4,10 +4,11 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using AlphabetUpdate.Common.Helpers;
 using AlphabetUpdate.Common.Models;
-using AlphabetUpdateHub.Helpers;
+using AlphabetUpdate.Common.Services;
 using AlphabetUpdateHub.Models;
-using AlphabetUpdateHub.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AlphabetUpdateHub.UpdateServer
 {
@@ -59,6 +60,7 @@ namespace AlphabetUpdateHub.UpdateServer
             if (token == null || string.IsNullOrEmpty(token.Token))
                 throw new Exception("login failed");
 
+            token.ServerId = Server.ServerId;
             return token;
         }
 

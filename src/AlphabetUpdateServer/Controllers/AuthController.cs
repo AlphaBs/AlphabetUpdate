@@ -12,6 +12,8 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using AlphabetUpdate.Common.Models;
+using AlphabetUpdate.Common.Services;
 using Microsoft.AspNetCore.Authorization;
 
 namespace AlphabetUpdateServer.Controllers
@@ -69,16 +71,13 @@ namespace AlphabetUpdateServer.Controllers
             if (!validPassword)
                 return Unauthorized();
             
-            var jwt = generateJwt(loginModel.Name);
-            if (string.IsNullOrEmpty(jwt))
+            var token = generateJwt(loginModel.Name);
+            if (token == null)
                 return Unauthorized();
 
             logger.LogInformation("new jwt: {Name}", loginModel.Name);
 
-            return Ok(new 
-            {
-                Token = jwt
-            });
+            return Ok(token);
         }
 
         private async Task<LoginModel?> decryptAesKey(byte[] encryptedKey)
@@ -92,7 +91,7 @@ namespace AlphabetUpdateServer.Controllers
             try
             {
                 await using var ms = new MemoryStream(encryptedKey);
-                var aes = new AesWrapper(secureKeys.AesKey, secureKeys.AesIV);
+                var aes = new AesObjectService(secureKeys.AesKey, secureKeys.AesIV);
                 return await aes.AesDecrypt<LoginModel>(ms);
             }
             catch (Exception ex)
@@ -102,7 +101,7 @@ namespace AlphabetUpdateServer.Controllers
             }
         }
 
-        private string? generateJwt(string name)
+        private UpdateServerToken? generateJwt(string name)
         {
             if (string.IsNullOrEmpty(secureKeys.SecretKey))
             {
@@ -115,6 +114,7 @@ namespace AlphabetUpdateServer.Controllers
                 var key = new SymmetricSecurityKey(Convert.FromBase64String(secureKeys.SecretKey));
                 var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+                var exp = DateTime.Now.AddMinutes(authOption.ExpiresM);
                 var token = new JwtSecurityToken(
                     issuer: authOption.Issuer,
                     audience: Request.HttpContext.Connection.RemoteIpAddress?.ToString(),
@@ -123,12 +123,17 @@ namespace AlphabetUpdateServer.Controllers
                         new Claim("r", "manager"),
                         new Claim("s", name)
                     },
-                    expires: DateTime.Now.AddMinutes(authOption.ExpiresM),
+                    expires: exp,
                     notBefore: DateTime.Now,
                     signingCredentials: credentials);
 
 
-                return new JwtSecurityTokenHandler().WriteToken(token);
+                var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+                return new UpdateServerToken
+                {
+                    Token = jwt,
+                    ExpireOn = exp
+                };
             }
             catch (Exception ex)
             {

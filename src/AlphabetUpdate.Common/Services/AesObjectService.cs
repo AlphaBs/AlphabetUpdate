@@ -6,9 +6,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using AlphabetUpdateHub.Helpers;
+using AlphabetUpdate.Common.Helpers;
 
-namespace AlphabetUpdateHub.Services
+namespace AlphabetUpdate.Common.Services
 {
     public class AesObjectService : IAesObjectService
     {
@@ -36,32 +36,31 @@ namespace AlphabetUpdateHub.Services
 
         private readonly Aes aes;
 
-        public async Task AesEncrypt(object? obj, Stream writeTo)
+        public async Task AesEncrypt(object obj, Stream writeTo)
         {
             var json = JsonSerializer.Serialize(obj);
             var data = Encoding.UTF8.GetBytes(json);
             var dataHash = CryptoHelper.HashSha256(data);
             
             var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
-            using (var csEnc = new CryptoStream(writeTo, encryptor, CryptoStreamMode.Write, leaveOpen: true))
-            {
-                await writeTo.WriteAsync(dataHash, 0, 32);
-                await writeTo.WriteAsync(BitConverter.GetBytes(data.Length), 0, 4);
-                await csEnc.WriteAsync(data, 0, data.Length);
-            }
+            //using var csEnc = new CryptoStream(writeTo, encryptor, CryptoStreamMode.Write, leaveOpen: true);
+            using var csEnc = new CryptoStream(writeTo, encryptor, CryptoStreamMode.Write);
+            await writeTo.WriteAsync(dataHash, 0, 32);
+            await writeTo.WriteAsync(BitConverter.GetBytes(data.Length), 0, 4);
+            await csEnc.WriteAsync(data, 0, data.Length);
         }
 
-        public async Task<T?> AesDecrypt<T>(Stream stream)
+        public async Task<T> AesDecrypt<T>(Stream stream)
         {
             var decrypt = aes.CreateDecryptor(aes.Key, aes.IV);
-            await using var csDes = new CryptoStream(stream, decrypt, CryptoStreamMode.Read);
+            using var csDes = new CryptoStream(stream, decrypt, CryptoStreamMode.Read);
             
             var hashBuffer = new byte[32];
             await stream.ReadAsync(hashBuffer, 0, 32);
 
             var lengthBuffer = new byte[4];
             await stream.ReadAsync(lengthBuffer, 0, 4);
-            var length = BitConverter.ToInt32(lengthBuffer);
+            var length = BitConverter.ToInt32(lengthBuffer, 0);
 
             if (length > MaxSize)
                 throw new SecurityException("too big");

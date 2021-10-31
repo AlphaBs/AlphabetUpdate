@@ -49,14 +49,6 @@ namespace AlphabetUpdateServer
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AlphabetUpdateServer", Version = "v1" });
             });
-
-            var updateFileConf = configuration.GetSection(UpdateFileOptions.UpdateFile);
-            var updateFileOptions = new UpdateFileOptions();
-            updateFileConf.Bind(updateFileOptions);
-
-            updateFileOptions.BaseUrl.Trim('/');
-            updateFileOptions.InputDir = resolvePath(updateFileOptions.InputDir);
-            updateFileOptions.OutputDir = resolvePath(updateFileOptions.OutputDir);
             
             services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.Auth));
             services.Configure<UpdateFileOptions>(configuration.GetSection(UpdateFileOptions.UpdateFile));

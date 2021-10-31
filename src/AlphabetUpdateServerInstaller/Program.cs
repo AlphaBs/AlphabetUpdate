@@ -3,6 +3,8 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading.Tasks;
+using AlphabetUpdate.Common.Helpers;
+using AlphabetUpdate.Common.Services;
 using AlphabetUpdateServer.Core;
 using AlphabetUpdateServer.Models;
 using AlphabetUpdateServer.Services;
@@ -224,7 +226,7 @@ namespace AlphabetUpdateServerInstaller
 
         static async Task testServerPassword(ServerPassword serverPassword)
         {
-            var aes = new AesWrapper(serverPassword.AesKey, serverPassword.AesIv);
+            var aes = new AesObjectService(serverPassword.AesKey, serverPassword.AesIv);
             var ms = new MemoryStream();
             await aes.AesEncrypt(new LoginModel
             {

@@ -3,7 +3,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
 
-namespace AlphabetUpdateHub.Helpers
+namespace AlphabetUpdate.Common.Helpers
 {
     public class CryptoHelper
     {

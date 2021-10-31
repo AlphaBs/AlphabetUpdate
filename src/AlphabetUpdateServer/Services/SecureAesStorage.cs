@@ -3,6 +3,7 @@ using System.Data;
 using System.IO;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using AlphabetUpdate.Common.Services;
 using AlphabetUpdateServer.Core;
 using Microsoft.Extensions.Configuration;
 using AlphabetUpdateServer.Models;
@@ -12,7 +13,7 @@ namespace AlphabetUpdateServer.Services
 {
     public class SecureAesStorage : ISecureStorage
     {
-        private SecureAesStorage(AesWrapper _aes)
+        private SecureAesStorage(IAesObjectService _aes)
         {
             this.aes = _aes;
             this.path = GeneratePath();
@@ -21,11 +22,11 @@ namespace AlphabetUpdateServer.Services
         public SecureAesStorage(IConfiguration conf, ILogger<SecureAesStorage> _logger)
         {
             logger = _logger;
-            aes = new AesWrapper(conf["SecureStorageKey"], conf["SecureStorageIV"]);
+            aes = new AesObjectService(conf["SecureStorageKey"], conf["SecureStorageIV"]);
             path = GeneratePath();
         }
 
-        public static SecureAesStorage FromAes(AesWrapper aes)
+        public static SecureAesStorage FromAes(IAesObjectService aes)
         {
             var inst = new SecureAesStorage(aes);
             return inst;
@@ -33,12 +34,12 @@ namespace AlphabetUpdateServer.Services
 
         public static SecureAesStorage FromAes(Aes aes)
         {
-            var inst = new SecureAesStorage(new AesWrapper(aes));
+            var inst = new SecureAesStorage(new AesObjectService(aes));
             return inst;
         }
 
         private readonly ILogger<SecureAesStorage>? logger;
-        private readonly AesWrapper aes;
+        private readonly IAesObjectService aes;
         private readonly string path;
         private SecureKeys? obj;
 
