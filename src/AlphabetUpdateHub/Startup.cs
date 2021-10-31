@@ -5,6 +5,8 @@ using System.Net;
 using System.Threading.Tasks;
 using AlphabetUpdateHub.Models;
 using AlphabetUpdateHub.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace AlphabetUpdateHub
 {
@@ -35,9 +38,27 @@ namespace AlphabetUpdateHub
             
             services.Configure<DatabaseSettings>(
                 configuration.GetSection(nameof(DatabaseSettings)));
+            var authOptionsConf = configuration.GetSection(AuthOptions.AuthOptionName);
+            var authOptions = new AuthOptions();
+            authOptionsConf.Bind(authOptions);
+            services.Configure<AuthOptions>(authOptionsConf);
 
-            services.AddSingleton<LauncherCacheService>();
-            services.AddSingleton<AlphabetUpdateServerService>();
+            services.AddSingleton<UpdateServerMetadataService>();
+
+            var secretKey = Convert.FromBase64String(authOptions.SecretKey);
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = authOptions.Issuer,
+                        ValidateAudience = false,
+                        ValidateIssuerSigningKey = true,
+                        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+                    };
+                });
+            services.AddAuthorization();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
