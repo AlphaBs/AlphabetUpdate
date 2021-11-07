@@ -7,6 +7,7 @@ using AlphabetUpdate.Client.PatchProcess;
 using AlphabetUpdate.Client.ProcessInteractor;
 using AlphabetUpdate.Common.Models;
 using CmlLib.Core;
+using CmlLib.Core.Auth;
 using CmlLib.Core.Downloader;
 using log4net;
 
@@ -14,7 +15,7 @@ namespace AlphabetUpdate.Client
 {
     public class LauncherCore
     {
-        private static readonly ILog log = LogManager.GetLogger(nameof(LauncherCore));
+        private static readonly ILog logger = LogManager.GetLogger(nameof(LauncherCore));
         
         public bool LogOutput { get; set; }
         public bool LogOutputDebug { get; set; }
@@ -25,7 +26,9 @@ namespace AlphabetUpdate.Client
         public event EventHandler? Exited;
 
         private readonly MinecraftPath minecraftPath;
-        
+        private MLaunchOption launchOption = new MLaunchOption();
+        private Action<MLaunchOption>? launchOptionSetter;
+
         public LauncherCore(MinecraftPath path)
         {
             minecraftPath = path;
@@ -45,6 +48,8 @@ namespace AlphabetUpdate.Client
 
         public async Task Patch(PatchProcess.PatchProcess patchProcess)
         {
+            logger.Info("start patch");
+            
             if (patchProcess.Options.MinecraftPath == null)
                 patchProcess.Options.MinecraftPath = minecraftPath;
             
@@ -63,13 +68,19 @@ namespace AlphabetUpdate.Client
             }
         }
 
-        public async Task<Process> Launch(string versionName, MLaunchOption option)
+        public Action<MLaunchOption> SetLaunchOption(Action<MLaunchOption> fn)
+            => launchOptionSetter = fn;
+        
+        public async Task<Process> Launch(string versionName)
         {
+            logger.Info("start launch");
+            launchOptionSetter?.Invoke(launchOption);
+            
             var launcher = new CMLauncher(minecraftPath);
             launcher.FileChanged += PatcherOnFileChanged;
             launcher.ProgressChanged += PatcherOnProgressChanged;
 
-            var process = await launcher.CreateProcessAsync(versionName, option);
+            var process = await launcher.CreateProcessAsync(versionName, launchOption);
             startProcess(process);
             return process;
         }
@@ -77,8 +88,6 @@ namespace AlphabetUpdate.Client
         public Task<Process> LaunchFromMetadata(LauncherMetadata metadata, 
             bool useVanilla = false, bool useDirectConnect = true)
         {
-            var option = new MLaunchOption();
-            
             var startVersion = metadata.Launcher.StartVersion;
             if (useVanilla && !string.IsNullOrEmpty(metadata.Launcher.StartVanillaVersion))
                 startVersion = metadata.Launcher.StartVanillaVersion;
@@ -90,20 +99,20 @@ namespace AlphabetUpdate.Client
                 {
                     if (ipspl.Length == 2)
                     {
-                         option.ServerIp = ipspl[0];
-                        option.ServerPort = int.Parse(ipspl[1]);
+                        launchOption.ServerIp = ipspl[0];
+                        launchOption.ServerPort = int.Parse(ipspl[1]);
                     }
                     else
-                        option.ServerIp = ipspl[0];
+                        launchOption.ServerIp = ipspl[0];
                 }
             }
 
-            return Launch(startVersion, option);
+            return Launch(startVersion);
         }
         
         private void startProcess(Process process)
         {
-            log.Info("Setting Process");
+            logger.Info("Setting Process");
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardError = true;
             process.StartInfo.RedirectStandardOutput = true;
@@ -112,7 +121,7 @@ namespace AlphabetUpdate.Client
             process.OutputDataReceived += Process_OutputDataReceived;
             process.Exited += Process_Exited;
 
-            log.Info("Start Process");
+            logger.Info("Start Process");
             process.Start();
             process.BeginErrorReadLine();
             process.BeginOutputReadLine();
@@ -122,7 +131,7 @@ namespace AlphabetUpdate.Client
 
         private void Process_Exited(object? sender, EventArgs e)
         {
-            log.Info("Process Exited");
+            logger.Info("Process Exited");
             processAction(p => p.OnProcessExited());
             
             Exited?.Invoke(this, EventArgs.Empty);
@@ -138,7 +147,7 @@ namespace AlphabetUpdate.Client
         void OnProcessOutput(string msg)
         {
             if (LogOutput)
-                log.Info(msg);
+                logger.Info(msg);
             if (LogOutputDebug)
                 Debug.WriteLine(msg);
             

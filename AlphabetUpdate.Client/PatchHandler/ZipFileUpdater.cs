@@ -1,9 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Threading.Tasks;
-using AlphabetUpdate.Client.PatchHandler;
 using CmlLib.Core.Downloader;
 
-namespace AlphabetUpdate.Client.Updater
+namespace AlphabetUpdate.Client.PatchHandler
 {
     public class ZipFileUpdater : IPatchHandler
     {

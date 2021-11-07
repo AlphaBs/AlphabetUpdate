@@ -5,24 +5,23 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AlphabetUpdate.Client.PatchHandler;
 using AlphabetUpdate.Common.Helpers;
 using AlphabetUpdate.Common.Models;
-using CmlLib.Core;
 using CmlLib.Core.Downloader;
 using log4net;
-using log4net.Core;
 
-namespace AlphabetUpdate.Client.Updater
+namespace AlphabetUpdate.Client.PatchHandler
 {
     public class AlphabetFileUpdaterOptions
     {
         public string? BaseUrl { get; set; }
         public bool CheckHash { get; set; } = true;
         public int RetryCount { get; set; } = 3;
+        public DateTime? LastUpdate { get; set; }
+        public string? LastUpdateFilePath { get; set; }
     }
     
-    public class AlphabetFileUpdater : IPatchHandler, IDisposable
+    public class AlphabetFileUpdater : IPatchHandler
     {
         private static readonly ILog logger = LogManager.GetLogger(nameof(AlphabetFileUpdater));
         
@@ -40,20 +39,46 @@ namespace AlphabetUpdate.Client.Updater
         private readonly UpdateFileCollection updateFileCollection;
         private readonly AlphabetFileUpdaterOptions options;
 
-        private WebClient? webClient;
-
-        private void initializeWebClient()
+        private WebClient initializeWebClient()
         {
-            webClient = new WebClient();
+            var webClient = new WebClient();
             webClient.DownloadProgressChanged += (sender, args)
                 => ProgressChanged?.Invoke(this, args);
+            return webClient;
         }
         
         public async Task Patch(PatchContext context)
         {
+            if (options.LastUpdate == null)
+            {
+                if (!string.IsNullOrEmpty(options.LastUpdateFilePath) && 
+                    File.Exists(options.LastUpdateFilePath))
+                {
+                    logger.Info("read LastUpdate from " + options.LastUpdateFilePath);
+                    var content = File.ReadAllText(options.LastUpdateFilePath);
+                    options.LastUpdate = DateTime.Parse(content);
+                }
+                else
+                    options.LastUpdate = DateTime.MinValue;
+            }
+            
+            logger.Info($"options.LastUpdate: {options.LastUpdate}, " +
+                        $"updateFileCollection.LastUpdate: {updateFileCollection.LastUpdate}");
+            
             await DownloadFiles(context);
-            DeleteInvalidFiles(context);
-            this.Dispose();
+
+            if (options.LastUpdate < updateFileCollection.LastUpdate)
+            {
+                logger.Info("delete invalid files");
+                DeleteInvalidFiles(context);
+
+                if (!string.IsNullOrEmpty(options.LastUpdateFilePath))
+                {
+                    var content = updateFileCollection.LastUpdate.ToString("o");
+                    File.WriteAllText(options.LastUpdateFilePath, content);
+                    logger.Info("write LastUpdate to " + options.LastUpdateFilePath);
+                }
+            }
         }
         
         public List<string> GetTargetFiles(PatchContext context, string path)
@@ -83,8 +108,7 @@ namespace AlphabetUpdate.Client.Updater
         
         public async Task DownloadFiles(PatchContext context)
         {
-            if (webClient == null)
-                initializeWebClient();
+            var webClient = initializeWebClient();
             
             int progressed = 0;
             foreach (var item in updateFileCollection.Files)
@@ -106,7 +130,7 @@ namespace AlphabetUpdate.Client.Updater
                     }
                     
                     if (!context.IsWhitelistFile(path))
-                        await CheckAndDownloadFile(path, item);
+                        await CheckAndDownloadFile(webClient, path, item);
 
                     if (!context.IsIgnoreTagContains(item.Tags))
                         context.GetTagFilePathList(item.Tags).Add(path);
@@ -131,9 +155,11 @@ namespace AlphabetUpdate.Client.Updater
                     total: updateFileCollection.Files.Length, 
                     progressed: progressed));
             }
+            
+            webClient.Dispose();
         }
 
-        private async Task CheckAndDownloadFile(string path, UpdateFile file)
+        private async Task CheckAndDownloadFile(WebClient webClient, string path, UpdateFile file)
         {
             for (int i = 0; i < options.RetryCount; i++)
             {
@@ -143,7 +169,7 @@ namespace AlphabetUpdate.Client.Updater
                         return;
 
                     var url = GetUrl(file);
-                    await webClient!.DownloadFileTaskAsync(url, path);
+                    await webClient.DownloadFileTaskAsync(url, path);
 
                     if (CheckFileValidation(path, file.Hash))
                         return;
@@ -192,16 +218,14 @@ namespace AlphabetUpdate.Client.Updater
 
             f = f.Where(x => !context.IsWhitelistFile(x));
 
+            int count = 0;
             foreach (var path in f)
             {
                 File.Delete(path);
+                count++;
             }
-        }
-
-        public void Dispose()
-        {
-            webClient?.Dispose();
-            webClient = null;
+            
+            logger.Info("delete files: " + count);
         }
     }
 }

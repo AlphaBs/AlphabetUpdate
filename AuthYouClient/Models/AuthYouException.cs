@@ -18,6 +18,10 @@ namespace AuthYouClient.Models
             this.Response = res;
         }
 
+        public AuthYouException(string msg, Exception inner) : base(msg, inner)
+        {
+        }
+
         public AuthYouResponse Response { get; private set; }
     }
 }

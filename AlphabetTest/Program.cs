@@ -4,6 +4,7 @@ using System.IO;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using AlphabetUpdate.Client;
+using AlphabetUpdate.Client.PatchHandler;
 using AlphabetUpdate.Client.PatchProcess;
 using AlphabetUpdate.Client.UpdateServer;
 using AlphabetUpdate.Common.Helpers;
@@ -62,7 +63,10 @@ namespace AlphabetTest
             core.ProgressChanged += CoreOnProgressChanged;
 
             await core.Patch(new PatchProcessBuilder()
-                .AddAlphabetFileUpdater(metadata));
+                .AddAlphabetFileUpdater(metadata, new AlphabetFileUpdaterOptions
+                {
+                    LastUpdateFilePath = "last"
+                }));
 
             core.ProcessInteractors = new[]
             {

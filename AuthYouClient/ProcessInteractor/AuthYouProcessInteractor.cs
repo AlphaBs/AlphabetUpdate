@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AlphabetUpdate.Client.ProcessInteractor;
+using AuthYouClient.Models;
 
 namespace AuthYouClient.ProcessInteractor
 {
@@ -18,9 +19,9 @@ namespace AuthYouClient.ProcessInteractor
 
         private readonly AuthYouClientCore core;
         
-        public void OnProcessStarted()
+        public async void OnProcessStarted()
         {
-            Task.Run(() => ready().GetAwaiter().GetResult());
+            await ready();
         }
 
         public void OnProcessExited()
@@ -40,13 +41,14 @@ namespace AuthYouClient.ProcessInteractor
         {
             try
             {
+                // TODO: 10초로 늘리고 10초 지나기 전 connect 하면 ready먼저하고 connect
+                // 포지 실행 속도가 생각보다 느림. 5초 안에 파일 추가해도 실행될듯
                 await Task.Delay(5000);
                 await core.Ready();
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                throw new AuthYouException("Error on ready", e);
             }
         }
 
@@ -58,8 +60,7 @@ namespace AuthYouClient.ProcessInteractor
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                throw new AuthYouException("Error on connect", e);
             }
         }
     }

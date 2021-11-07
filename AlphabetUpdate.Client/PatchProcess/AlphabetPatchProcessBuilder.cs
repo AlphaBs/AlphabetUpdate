@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AlphabetUpdate.Client.PatchHandler;
-using AlphabetUpdate.Client.Updater;
 using AlphabetUpdate.Client.UpdateServer;
 using AlphabetUpdate.Common.Models;
 using CmlLib.Core;
