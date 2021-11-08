@@ -113,6 +113,13 @@ namespace AlphabetUpdate.Client.PatchHandler
             int progressed = 0;
             foreach (var item in updateFileCollection.Files)
             {
+                FileChanged?.Invoke(new DownloadFileChangedEventArgs(
+                    type: MFile.Others, 
+                    source: this, 
+                    filename: item.Path, 
+                    total: updateFileCollection.Files.Length, 
+                    progressed: progressed));
+                
                 var path = Path.Combine(context.MinecraftPath.BasePath, item.Path);
                 var disabledPath = context.MinecraftPath + "_b";
                 
@@ -148,12 +155,6 @@ namespace AlphabetUpdate.Client.PatchHandler
                 }
 
                 progressed++;
-                FileChanged?.Invoke(new DownloadFileChangedEventArgs(
-                    type: MFile.Others, 
-                    source: this, 
-                    filename: item.Path, 
-                    total: updateFileCollection.Files.Length, 
-                    progressed: progressed));
             }
             
             webClient.Dispose();
