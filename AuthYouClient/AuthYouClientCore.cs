@@ -41,8 +41,11 @@ namespace AuthYouClient
         }
 
         private void GetHashedFiles(string dirPath, List<HashedFile> lst)
-        { 
+        {
             var dir = new DirectoryInfo(dirPath);
+            if (!dir.Exists)
+                return;
+            
             var files = dir.GetFiles("*.*", SearchOption.AllDirectories);
 
             foreach (var file in files)

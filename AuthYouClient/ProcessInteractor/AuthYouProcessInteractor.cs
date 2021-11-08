@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using AlphabetUpdate.Client.ProcessInteractor;
 using AuthYouClient.Models;
 
 namespace AuthYouClient.ProcessInteractor
 {
-    public class AuthYouProcessInteractor : IProcessInteractor
+    public class AuthYouProcessInteractor : AlphabetUpdate.Client.ProcessManage.ProcessInteractor
     {
         public AuthYouProcessInteractor(AuthYouClientCore _core)
         {
@@ -18,18 +17,21 @@ namespace AuthYouClient.ProcessInteractor
         }
 
         private readonly AuthYouClientCore core;
+
+        private bool isReady = false;
+        private bool startConnect = false;
         
-        public async void OnProcessStarted()
+        public override async void OnProcessStarted()
         {
             await ready();
         }
 
-        public void OnProcessExited()
+        public override void OnProcessExited()
         {
             
         }
 
-        public async void OnProcessOutput(string msg)
+        public override async void OnProcessOutput(string msg)
         {
             if (msg.Contains("Connecting to") && !msg.Contains("[CHAT]"))
             {
@@ -41,26 +43,31 @@ namespace AuthYouClient.ProcessInteractor
         {
             try
             {
-                // TODO: 10초로 늘리고 10초 지나기 전 connect 하면 ready먼저하고 connect
-                // 포지 실행 속도가 생각보다 느림. 5초 안에 파일 추가해도 실행될듯
-                await Task.Delay(5000);
-                await core.Ready();
+                await Task.Delay(10 * 1000);
+                
+                if (!startConnect)
+                    await core.Ready();
+                isReady = true;
             }
             catch (Exception e)
             {
-                throw new AuthYouException("Error on ready", e);
+                Kill(new AuthYouException("Error on ready", e));
             }
         }
 
         private async Task connect()
         {
+            startConnect = true;
+            
             try
             {
+                if (!isReady)
+                    await core.Ready();
                 await core.ConnectServer();
             }
             catch (Exception e)
             {
-                throw new AuthYouException("Error on connect", e);
+                Kill(new AuthYouException("Error on connect", e));
             }
         }
     }

@@ -1,13 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using AlphabetUpdate.Client.PatchHandler;
 using AlphabetUpdate.Client.PatchProcess;
-using AlphabetUpdate.Client.ProcessInteractor;
+using AlphabetUpdate.Client.ProcessManage;
 using AlphabetUpdate.Common.Models;
 using CmlLib.Core;
-using CmlLib.Core.Auth;
 using CmlLib.Core.Downloader;
 using log4net;
 
@@ -19,7 +17,7 @@ namespace AlphabetUpdate.Client
         
         public bool LogOutput { get; set; }
         public bool LogOutputDebug { get; set; }
-        public IProcessInteractor[]? ProcessInteractors { get; set; }
+        public ProcessInteractor[]? ProcessInteractors { get; set; }
         public event EventHandler<string>? StatusChanged;
         public event DownloadFileChangedHandler? FileChanged;
         public event ProgressChangedEventHandler? ProgressChanged;
@@ -71,7 +69,7 @@ namespace AlphabetUpdate.Client
         public Action<MLaunchOption> SetLaunchOption(Action<MLaunchOption> fn)
             => launchOptionSetter = fn;
         
-        public async Task<Process> Launch(string versionName)
+        public async Task<ProcessManager> Launch(string versionName)
         {
             logger.Info("start launch");
             launchOptionSetter?.Invoke(launchOption);
@@ -81,11 +79,12 @@ namespace AlphabetUpdate.Client
             launcher.ProgressChanged += PatcherOnProgressChanged;
 
             var process = await launcher.CreateProcessAsync(versionName, launchOption);
-            startProcess(process);
-            return process;
+            var manager = new ProcessManager(process, ProcessInteractors);
+            manager.Start();
+            return manager;
         }
 
-        public Task<Process> LaunchFromMetadata(LauncherMetadata metadata, 
+        public Task<ProcessManager> LaunchFromMetadata(LauncherMetadata metadata, 
             bool useVanilla = false, bool useDirectConnect = true)
         {
             var startVersion = metadata.Launcher.StartVersion;
@@ -109,62 +108,7 @@ namespace AlphabetUpdate.Client
 
             return Launch(startVersion);
         }
-        
-        private void startProcess(Process process)
-        {
-            logger.Info("Setting Process");
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.EnableRaisingEvents = true;
-            process.ErrorDataReceived += Process_OutputDataReceived;
-            process.OutputDataReceived += Process_OutputDataReceived;
-            process.Exited += Process_Exited;
 
-            logger.Info("Start Process");
-            process.Start();
-            process.BeginErrorReadLine();
-            process.BeginOutputReadLine();
-            
-            processAction(p => p.OnProcessStarted());
-        }
-
-        private void Process_Exited(object? sender, EventArgs e)
-        {
-            logger.Info("Process Exited");
-            processAction(p => p.OnProcessExited());
-            
-            Exited?.Invoke(this, EventArgs.Empty);
-        }
-
-        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            if (string.IsNullOrEmpty(e.Data))
-                return;
-            OnProcessOutput(e.Data);
-        }
-
-        void OnProcessOutput(string msg)
-        {
-            if (LogOutput)
-                logger.Info(msg);
-            if (LogOutputDebug)
-                Debug.WriteLine(msg);
-            
-            processAction(p => p.OnProcessOutput(msg));
-        }
-
-        private void processAction(Action<IProcessInteractor> work)
-        {
-            if (ProcessInteractors != null)
-            {
-                foreach (var interactor in ProcessInteractors)
-                {
-                    work(interactor);
-                }
-            }
-        }
-        
         private void PatcherOnProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
             ProgressChanged?.Invoke(this, e);
