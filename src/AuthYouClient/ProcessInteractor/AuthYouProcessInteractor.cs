@@ -14,11 +14,13 @@ namespace AuthYouClient.ProcessInteractor
             this.core = _core;
         }
 
-        public AuthYouProcessInteractor(AuthYouClientSettings settings)
+        public AuthYouProcessInteractor(AuthYouClientSettings sets)
         {
-            this.core = new AuthYouClientCore(settings);
+            this.core = new AuthYouClientCore(sets);
+            this.settings = sets;
         }
 
+        private readonly AuthYouClientSettings settings;
         private readonly AuthYouClientCore core;
 
         private bool isReady = false;
@@ -36,7 +38,11 @@ namespace AuthYouClient.ProcessInteractor
             while (isRunning)
             {
                 await ready();
-                await Task.Delay(1 * 60 * 1000);
+
+                if (settings.InteractorCheckingDelaySec <= 0)
+                    break;
+
+                await Task.Delay(settings.InteractorCheckingDelaySec * 1000);
             }
         }
 
@@ -58,7 +64,7 @@ namespace AuthYouClient.ProcessInteractor
         {
             try
             {
-                await Task.Delay(10 * 1000);
+                await Task.Delay(settings.InteractorReadyDelaySec * 1000);
                 
                 if (!startConnect)
                     await core.Ready();

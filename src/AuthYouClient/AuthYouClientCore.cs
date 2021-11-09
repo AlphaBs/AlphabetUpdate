@@ -11,11 +11,11 @@ namespace AuthYouClient
     {
         public AuthYouClientCore(AuthYouClientSettings settings)
         {
-            this.uuid = settings.Uuid;
-            this.clientApi = settings.ClientApi;
-            this.tokenEncryptor = settings.TokenEncryptor;
-            this.basePath = settings.BasePath;
-            this.targetDirs = settings.TargetDirs;
+            this.uuid = settings.Uuid ?? throw new ArgumentException("Uuid");
+            this.clientApi = settings.ClientApi ?? throw new ArgumentException("ClientApi");
+            this.tokenEncryptor = settings.TokenEncryptor ?? new TokenEncryptor();
+            this.basePath = settings.BasePath ?? throw new ArgumentException("BasePath");
+            this.targetDirs = settings.TargetDirs ?? throw new ArgumentException("TargetDirs");
         }
 
         private readonly AuthYouClientApi clientApi;
