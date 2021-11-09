@@ -19,6 +19,7 @@ namespace AlphabetUpdate.Client.PatchHandler
         public int RetryCount { get; set; } = 3;
         public DateTime? LastUpdate { get; set; }
         public string? LastUpdateFilePath { get; set; }
+        public string[]? AlwaysUpdates { get; set; }
     }
     
     public class AlphabetFileUpdater : IPatchHandler
@@ -69,14 +70,25 @@ namespace AlphabetUpdate.Client.PatchHandler
 
             if (options.LastUpdate < updateFileCollection.LastUpdate)
             {
-                logger.Info("delete invalid files");
                 DeleteInvalidFiles(context);
 
                 if (!string.IsNullOrEmpty(options.LastUpdateFilePath))
                 {
                     var content = updateFileCollection.LastUpdate.ToString("o");
+                    var lastUpdateFileDir = Path.GetDirectoryName(options.LastUpdateFilePath);
+                    if (!string.IsNullOrEmpty(lastUpdateFileDir))
+                        Directory.CreateDirectory(lastUpdateFileDir);
                     File.WriteAllText(options.LastUpdateFilePath, content);
                     logger.Info("write LastUpdate to " + options.LastUpdateFilePath);
+                }
+            }
+            else if (options.AlwaysUpdates != null)
+            {
+                // keep always up-to-date
+                foreach (var item in options.AlwaysUpdates)
+                {
+                    var path = Path.Combine(context.MinecraftPath.BasePath, item);
+                    DeleteInvalidFiles(context, path);
                 }
             }
         }
@@ -213,7 +225,14 @@ namespace AlphabetUpdate.Client.PatchHandler
 
         public void DeleteInvalidFiles(PatchContext context)
         {
-            var f = GetTargetFiles(context, context.MinecraftPath.BasePath)
+            DeleteInvalidFiles(context, context.MinecraftPath.BasePath);
+        }
+        
+        public void DeleteInvalidFiles(PatchContext context, string targetPath)
+        {
+            logger.Info("DeleteInvalidFiles: " + targetPath);
+            
+            var f = GetTargetFiles(context, targetPath)
                 .Except(updateFileCollection.Files.Select(x
                     => IoHelper.NormalizePath(Path.Combine(context.MinecraftPath.BasePath, x.Path))));
 
