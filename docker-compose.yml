@@ -1,0 +1,47 @@
+version: "3.7"
+services:
+
+  asp-install:
+    image: ksi123456ab/alphabet-update-server
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./volume:/volume
+      - ./volume/appsettings.json:/app/appsettings.json
+    profiles:
+      - install
+    environment:
+      - "START_OPTION=INSTALL"
+      - "DEBUG=TRUE"
+
+  asp:
+    image: ksi123456ab/alphabet-update-server
+    volumes:
+      - ./volume:/volume
+      - ./volume/appsettings.json:/app/appsettings.json
+    environment:
+      - "START_OPTION=SERVER"
+
+  # nginx:1.12-alpine
+  nginx:
+    image: nginx:1.12-alpine
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    volumes:
+      - ./volume/nginx.conf:/etc/nginx/nginx.conf
+      - ./volume/out:/volume/out
+      - ./volume/nginx:/volume/nginx
+
+  ftp:
+    image: delfer/alpine-ftp-server
+    environment:
+      USERS: "${FTP_USER:-admin}|${FTP_PASS:-pass}|/home/ftp"
+      ADDRESS: "${FTP_ADDR}"
+      MIN_PORT: "${FTP_PASVPORT_MIN:-30000}"
+      MAX_PORT: "${FTP_PASVPORT_MAX:-30010}"
+    ports:
+      - "${FTP_PORT_20:-20}:${FTP_PORT_20:-20}"
+      - "${FTP_PORT_21:-21}:${FTP_PORT_21:-21}"
+      - "${FTP_PASVPORT_MIN:-30000}-${FTP_PASVPORT_MAX:-30010}:${FTP_PASVPORT_MIN:-30000}-${FTP_PASVPORT_MAX:-30010}"
+    volumes:
+      - ./volume/in:/home/ftp
