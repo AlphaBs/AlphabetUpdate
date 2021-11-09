@@ -150,7 +150,9 @@ namespace AlphabetUpdateServerInstaller
             var passwordAesIV = Convert.ToBase64String(passwordAes.IV);
             
             // JWT secret key
-            var jwtSecretKeyBytes = CryptoHelper.GenerateRandomBytes(32);
+            using var rng = new RNGCryptoServiceProvider();
+            var jwtSecretKeyBytes = new byte[32];
+            rng.GetBytes(jwtSecretKeyBytes);
             var jwtSecretKey = Convert.ToBase64String(jwtSecretKeyBytes);
             
             var secureKeys = new SecureKeys
