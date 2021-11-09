@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AlphabetUpdate.Client;
 using AlphabetUpdate.Client.PatchHandler;
 using AlphabetUpdate.Client.PatchProcess;
+using AlphabetUpdate.Client.ProcessManage;
 using AlphabetUpdate.Client.UpdateServer;
 using AlphabetUpdate.Common.Helpers;
 using AlphabetUpdate.Common.Models;
@@ -79,12 +80,29 @@ namespace AlphabetTest
                 })
             };
 
-            await core.LaunchFromMetadata(metadata, useVanilla: true);
+            core.SetLaunchOption(option =>
+            {
+                option.MaximumRamMb = 4096;
+            });
+            
+            var process = await core.LaunchFromMetadata(metadata);
+            process.Exited += ProcessOnExited;
+            process.Interact();
+            
             Console.WriteLine("DONE");
             Console.ReadLine();
         }
 
-        private void CoreOnProgressChanged(object? sender, ProgressChangedEventArgs e)
+        private void ProcessOnExited(object sender, ProcessResult e)
+        {
+            if (e.Exception != null)
+                Console.WriteLine(e.Exception);
+            
+            Console.WriteLine(e.ExitCode);
+            Console.WriteLine(e.Message);
+        }
+
+        private void CoreOnProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             Console.WriteLine(e.ProgressPercentage);
         }
