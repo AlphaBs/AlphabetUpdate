@@ -40,13 +40,18 @@ namespace AlphabetUpdate.Client.ProcessManage
 
             logger.Info("Start Process");
             Process.Start();
+            
+            Process.BeginErrorReadLine();
+            Process.BeginOutputReadLine();
         }
 
         public void Interact()
         {
-            Process.BeginErrorReadLine();
-            Process.BeginOutputReadLine();
-
+            foreach (var inter in processInteractors)
+            {
+                inter.Enabled = true;
+            }
+            
             processAction(p =>
             {
                 p.KillRequest += InteractorOnKill;
@@ -111,7 +116,8 @@ namespace AlphabetUpdate.Client.ProcessManage
         {
             foreach (var inter in processInteractors)
             {
-                work(inter);
+                if (inter.Enabled)
+                    work(inter);
             }
         }
     }

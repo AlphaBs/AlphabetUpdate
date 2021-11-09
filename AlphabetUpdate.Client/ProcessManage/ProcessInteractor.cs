@@ -5,6 +5,7 @@ namespace AlphabetUpdate.Client.ProcessManage
 {
     public abstract class ProcessInteractor
     {
+        public bool Enabled { get; set; } = false;
         public ProcessStatus Status { get; private set; } 
         
         public abstract void OnProcessStarted();
