@@ -6,8 +6,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using AlphabetUpdate.Common.Helpers;
 using AlphabetUpdate.Common.Models;
-using AlphabetUpdate.Common.Services;
 using AlphabetUpdateHub.Models;
+using AlphabetUpdateHub.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AlphabetUpdateHub.UpdateServer
