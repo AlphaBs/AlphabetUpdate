@@ -1,8 +1,9 @@
 ﻿using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Text.Json;
+using AlphabetUpdate.Common.Helpers;
 using AuthYouClient.Models;
-using Newtonsoft.Json;
 
 namespace AuthYouClient
 {
@@ -19,13 +20,13 @@ namespace AuthYouClient
 
         private async Task<T> Post<T>(string path, object obj)
         {
-            var json = JsonConvert.SerializeObject(obj);
+            var json = JsonSerializer.Serialize(obj, JsonHelper.JsonOptions);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-
+            
             var res = await httpClient.PostAsync($"{Host}/{path}", content);
 
             var resStr = await res.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<T>(resStr);
+            return JsonSerializer.Deserialize<T>(resStr, JsonHelper.JsonOptions);
         }
 
         public Task<AuthYouTokenResponse> Key(string uuid, HashedFile[] files)

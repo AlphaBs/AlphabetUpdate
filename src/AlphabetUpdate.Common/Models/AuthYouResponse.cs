@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Text.Json.Serialization;
 
 namespace AuthYouClient.Models
 {
@@ -12,10 +12,10 @@ namespace AuthYouClient.Models
     [ObfuscationAttribute(Exclude=false, ApplyToMembers=true, Feature = "-rename;-typescramble")]
     public class AuthYouResponse
     {
-        [JsonProperty("result")]
+        [JsonPropertyName("result")]
         public bool Result { get; set; }
 
-        [JsonProperty("msg")]
+        [JsonPropertyName("msg")]
         public string Message { get; set; }
     }
 }

@@ -3,19 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace AuthYouClient.Models
 {
     [Serializable]
     [ObfuscationAttribute(Exclude=false, ApplyToMembers=true, Feature = "-rename;-typescramble")]
-    public class AuthYouTokenResponse : AuthYouResponse
+    public class HashedFile
     {
-        [JsonProperty("serverId")]
-        public string ServerId { get; set; }
-
-        [JsonProperty("token")]
-        public string Token { get; set; }
+        [JsonPropertyName("hash")]
+        public string Hash { get; set; }
+        [JsonPropertyName("path")]
+        public string Path { get; set; }
     }
 }
