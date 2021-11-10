@@ -30,9 +30,8 @@ namespace AlphabetUpdate.Client.PatchHandler
                 whitelistDirs = new HashSet<string>();
                 foreach (var dir in options.WhitelistDirs)
                 {
-                    whitelistDirs.Add(Path.Combine(
-                        options.MinecraftPath.BasePath,
-                        IoHelper.NormalizePath(dir)));
+                    whitelistDirs.Add(IoHelper.NormalizePath(Path.Combine(
+                        options.MinecraftPath.BasePath, dir)));
                 }
             }
 
@@ -41,9 +40,8 @@ namespace AlphabetUpdate.Client.PatchHandler
                 whitelistFiles = new HashSet<string>();
                 foreach (var file in options.WhitelistFiles)
                 {
-                    whitelistFiles.Add(Path.Combine(
-                        options.MinecraftPath.BasePath,
-                        IoHelper.NormalizePath(file)));
+                    whitelistFiles.Add(IoHelper.NormalizePath(Path.Combine(
+                        options.MinecraftPath.BasePath, file)));
                 }
             }
 

@@ -132,7 +132,7 @@ namespace AlphabetUpdate.Client.PatchHandler
                     total: updateFileCollection.Files.Length, 
                     progressed: progressed));
                 
-                var path = Path.Combine(context.MinecraftPath.BasePath, item.Path);
+                var path = IoHelper.NormalizePath(Path.Combine(context.MinecraftPath.BasePath, item.Path));
                 var disabledPath = context.MinecraftPath + "_b";
                 
                 var dirPath = Path.GetDirectoryName(path);
