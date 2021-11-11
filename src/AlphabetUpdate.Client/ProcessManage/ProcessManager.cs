@@ -18,13 +18,13 @@ namespace AlphabetUpdate.Client.ProcessManage
         private Exception? processException;
         private string? lastOutput;
         
-        public ProcessManager(Process proc, ProcessInteractor[] interactors)
+        public ProcessManager(Process proc, ProcessInteractor[]? interactors)
         {
             Process = proc;
             processInteractors = interactors;
         }
 
-        private readonly ProcessInteractor[] processInteractors;
+        private readonly ProcessInteractor[]? processInteractors;
 
         public void Start()
         {
@@ -47,11 +47,14 @@ namespace AlphabetUpdate.Client.ProcessManage
 
         public void Interact()
         {
-            foreach (var inter in processInteractors)
+            if (processInteractors != null)
             {
-                inter.Enabled = true;
+                foreach (var inter in processInteractors)
+                {
+                    inter.Enabled = true;
+                }
             }
-            
+
             processAction(p =>
             {
                 p.KillRequest += InteractorOnKill;
@@ -114,6 +117,9 @@ namespace AlphabetUpdate.Client.ProcessManage
         
         private void processAction(Action<ProcessInteractor> work)
         {
+            if (processInteractors == null)
+                return;
+            
             foreach (var inter in processInteractors)
             {
                 if (inter.Enabled)
