@@ -232,6 +232,9 @@ namespace AlphabetUpdate.Client.PatchHandler
         {
             logger.Info("DeleteInvalidFiles: " + targetPath);
             
+            if (!Directory.Exists(targetPath))
+                return;
+
             var f = GetTargetFiles(context, targetPath)
                 .Except(updateFileCollection.Files.Select(x
                     => IoHelper.NormalizePath(Path.Combine(context.MinecraftPath.BasePath, x.Path))));
