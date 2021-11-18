@@ -5,6 +5,6 @@ namespace AlphabetUpdate.Client.PatchProcess
 {
     public interface IPatchProcessBuilder
     {
-        Task<PatchProcess> Build();
+        PatchProcess Build();
     }
 }

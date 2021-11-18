@@ -15,36 +15,32 @@ namespace AlphabetUpdate.Client
     {
         private static readonly ILog logger = LogManager.GetLogger(nameof(LauncherCore));
         
+        public static LauncherCoreBuilder CreateBuilder(MinecraftPath path)
+            => new LauncherCoreBuilder(path);
+
         public bool LogOutput { get; set; }
         public bool LogOutputDebug { get; set; }
         public ProcessInteractor[]? ProcessInteractors { get; set; }
         public event EventHandler<string>? StatusChanged;
         public event DownloadFileChangedHandler? FileChanged;
         public event ProgressChangedEventHandler? ProgressChanged;
-        public event EventHandler? Exited;
 
         private readonly MinecraftPath minecraftPath;
-        private MLaunchOption launchOption = new MLaunchOption();
-        private Action<MLaunchOption>? launchOptionSetter;
+        private readonly PatchProcess.PatchProcess patchProcess;
+        private readonly MLaunchOption launchOption;
 
-        public LauncherCore(MinecraftPath path)
+        public LauncherCore(MinecraftPath path, 
+            PatchProcess.PatchProcess process,
+            ProcessInteractor[]? interactors,
+            MLaunchOption option)
         {
             minecraftPath = path;
-        }
-        
-        public async Task Patch(IPatchProcessBuilder builder)
-        {
-            var patchProcess = await builder.Build();
-            await Patch(patchProcess);
+            patchProcess = process;
+            ProcessInteractors = interactors;
+            launchOption = option;
         }
 
-        public async Task Patch(Func<Task<PatchProcess.PatchProcess>> processGenerator)
-        {
-            var patchProcess = await processGenerator();
-            await Patch(patchProcess);
-        }
-
-        public async Task Patch(PatchProcess.PatchProcess patchProcess)
+        public async Task Patch()
         {
             logger.Info("start patch");
             
@@ -65,15 +61,11 @@ namespace AlphabetUpdate.Client
                 patcher.ProgressChanged -= PatcherOnProgressChanged;
             }
         }
-
-        public Action<MLaunchOption> SetLaunchOption(Action<MLaunchOption> fn)
-            => launchOptionSetter = fn;
         
         public async Task<ProcessManager> Launch(string versionName)
         {
             logger.Info("start launch");
-            launchOptionSetter?.Invoke(launchOption);
-            
+
             var launcher = new CMLauncher(minecraftPath);
             launcher.FileChanged += PatcherOnFileChanged;
             launcher.ProgressChanged += PatcherOnProgressChanged;
@@ -82,31 +74,6 @@ namespace AlphabetUpdate.Client
             var manager = new ProcessManager(process, ProcessInteractors);
             manager.Start();
             return manager;
-        }
-
-        public Task<ProcessManager> LaunchFromMetadata(LauncherMetadata metadata, 
-            bool useVanilla = false, bool useDirectConnect = true)
-        {
-            var startVersion = metadata.Launcher.StartVersion;
-            if (useVanilla && !string.IsNullOrEmpty(metadata.Launcher.StartVanillaVersion))
-                startVersion = metadata.Launcher.StartVanillaVersion;
-            
-            if (useDirectConnect)
-            {
-                var ipspl = metadata.Launcher.GameServerIp.Split(':');
-                if (ipspl.Length != 0)
-                {
-                    if (ipspl.Length == 2)
-                    {
-                        launchOption.ServerIp = ipspl[0];
-                        launchOption.ServerPort = int.Parse(ipspl[1]);
-                    }
-                    else
-                        launchOption.ServerIp = ipspl[0];
-                }
-            }
-
-            return Launch(startVersion);
         }
 
         private void PatcherOnProgressChanged(object? sender, ProgressChangedEventArgs e)

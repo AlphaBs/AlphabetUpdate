@@ -8,10 +8,10 @@ namespace AlphabetUpdate.Client.PatchProcess
 {
     public class PatchProcessBuilder : IPatchProcessBuilder
     {
-        public virtual Task<PatchProcess> Build()
+        public virtual PatchProcess Build()
         {
             var patchProcess = new PatchProcess(handlers.ToArray(), patchOptions);
-            return Task.FromResult(patchProcess);
+            return patchProcess;
         }
 
         protected readonly List<IPatchHandler> handlers = new List<IPatchHandler>();
