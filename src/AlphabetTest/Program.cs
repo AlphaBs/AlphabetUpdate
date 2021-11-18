@@ -43,8 +43,10 @@ namespace AlphabetTest
 
         private async Task start()
         {
-            var authYouHost = "https://alphabeta.pw/alphabet/authyou/m10";
-            var updateServerHost = "http://3.34.192.206/launcher/files-al.json";
+            //var authYouHost = "https://alphabeta.pw/alphabet/authyou/m10";
+            //var updateServerHost = "http://3.34.192.206/launcher/files-al.json";
+            var authYouHost = "https://alphabeta.pw/alphabet/authyou/m11";
+            var updateServerHost = "http://15.165.237.254/launcher/files.json";
             var session = MSession.GetOfflineSession("tester123");
             session.UUID = "4e7e3bea-4e3a-3db3-8ca0-af6a0f6391f8";
 
@@ -57,35 +59,33 @@ namespace AlphabetTest
             //var metadata = await api.GetLauncherMetadata();
             var res = await HttpHelper.HttpClient.GetAsync(updateServerHost);
             var metadata = await res.Content.ReadFromJsonAsync<LauncherMetadata>(JsonHelper.JsonOptions);
-            metadata.Launcher.GameServerIp = "61.74.166.134";
-            
-            var core = new LauncherCore(path);
-            core.FileChanged += CoreOnFileChanged;
-            core.ProgressChanged += CoreOnProgressChanged;
+            //metadata.Launcher.GameServerIp = "61.74.166.134";
 
-            await core.Patch(new PatchProcessBuilder()
-                .AddAlphabetFileUpdater(metadata, new AlphabetFileUpdaterOptions
-                {
-                    LastUpdateFilePath = "last"
-                }));
-
-            core.ProcessInteractors = new[]
+            var builder = LauncherCore.CreateBuilder(path);
+            builder.PatchProcess.AddAlphabetFileUpdater(metadata, new AlphabetFileUpdaterOptions
             {
-                new AuthYouProcessInteractor(new AuthYouClientSettings
-                {
-                    ClientApi = new AuthYouClientApi(authYouHost, HttpHelper.HttpClient),
-                    Uuid = session.UUID,
-                    BasePath = path.BasePath,
-                    TargetDirs = new[] { "mods" }
-                })
-            };
-
-            core.SetLaunchOption(option =>
+                LastUpdateFilePath = "last",
+                AlwaysUpdates = new[] { "mods" }
+            });
+            builder.AddAuthYouInteractor(new AuthYouClientSettings
+            {
+                ClientApi = new AuthYouClientApi(authYouHost, HttpHelper.HttpClient),
+                Uuid = session.UUID,
+                BasePath = path.BasePath,
+                TargetDirs = new[] { "mods" }
+            });
+            builder.UseDirectServerConnection(metadata.Launcher.GameServerIp);
+            builder.AddLaunchOptionAction((MLaunchOption option) =>
             {
                 option.MaximumRamMb = 4096;
             });
-            
-            var process = await core.LaunchFromMetadata(metadata);
+
+            var core = builder.Build();
+            core.FileChanged += CoreOnFileChanged;
+            core.ProgressChanged += CoreOnProgressChanged;
+
+            await core.Patch();
+            var process = await core.Launch(metadata.Launcher.StartVersion);
             process.Exited += ProcessOnExited;
             process.Interact();
             
