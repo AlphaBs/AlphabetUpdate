@@ -26,11 +26,6 @@ namespace AlphabetUpdate.Client
         private readonly List<Action<MLaunchOption>> launchOptionActions
             = new List<Action<MLaunchOption>>();
 
-        public void AddPatchHandler(IPatchHandler handler)
-        {
-            PatchProcess.AddHandler(handler);
-        }
-
         public void AddProcessInteractor(ProcessManage.ProcessInteractor interactor)
         {
             interactors.Add(interactor);
