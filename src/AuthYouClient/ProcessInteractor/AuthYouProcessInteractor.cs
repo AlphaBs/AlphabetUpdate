@@ -12,6 +12,7 @@ namespace AuthYouClient.ProcessInteractor
         public AuthYouProcessInteractor(AuthYouClientCore _core)
         {
             this.core = _core;
+            this.settings = new AuthYouClientSettings();
         }
 
         public AuthYouProcessInteractor(AuthYouClientSettings sets)
