@@ -47,11 +47,13 @@ namespace AlphabetUpdate.Client.PatchHandler
                 {
                     logger.Info("read LastUpdate from " + options.LastUpdateFilePath);
                     var content = File.ReadAllText(options.LastUpdateFilePath);
-                    options.LastUpdate = DateTime.Parse(content);
+                    if (DateTime.TryParse(content, out DateTime result))
+                        options.LastUpdate = result;
                 }
-                else
-                    options.LastUpdate = DateTime.MinValue;
             }
+
+            if (options.LastUpdate == null)
+                options.LastUpdate = DateTime.MinValue;
             
             logger.Info($"options.LastUpdate: {options.LastUpdate}, " +
                         $"updateFileCollection.LastUpdate: {updateFileCollection.LastUpdate}");
