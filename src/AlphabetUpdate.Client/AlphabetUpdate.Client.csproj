@@ -1,11 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Version>1.0.7</Version>
+        <Version>1.0.8</Version>
         <TargetFrameworks>net462;netstandard2.1</TargetFrameworks>
         <LangVersion>8.0</LangVersion>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+		<NugetPublishVersion>5.11.0</NugetPublishVersion>
+		<NugetPublishType>local</NugetPublishType>
+		<NugetPublishLocation>C:\p\nuget\</NugetPublishLocation>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,6 +19,10 @@
     <ItemGroup>
       <PackageReference Include="log4net" Version="2.0.13" />
       <PackageReference Include="SharpZipLib" Version="1.3.3" />
+      <PackageReference Include="SS.NuGet.Publish" Version="1.0.1912.22">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="System.Text.Json" Version="6.0.0" />
     </ItemGroup>
 

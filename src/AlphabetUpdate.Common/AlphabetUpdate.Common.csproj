@@ -1,14 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <Version>1.0.4</Version>
+        <Version>1.0.5</Version>
         <TargetFrameworks>net462;netstandard2.1</TargetFrameworks>
         <LangVersion>8.0</LangVersion>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+		<NugetPublishVersion>5.11.0</NugetPublishVersion>
+		<NugetPublishType>local</NugetPublishType>
+		<NugetPublishLocation>C:\p\nuget\</NugetPublishLocation>
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="SS.NuGet.Publish" Version="1.0.1912.22">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="System.Net.Http" Version="4.3.0" />
       <PackageReference Include="System.Text.Json" Version="6.0.0" />
     </ItemGroup>
