@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlphabetUpdate.Client.PatchHandler
+namespace AlphabetUpdate.Client.Minecraft.PatchHandler
 {
     public class GameOptions
     {

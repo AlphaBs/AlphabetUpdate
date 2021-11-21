@@ -43,15 +43,15 @@ namespace AlphabetTest
 
         private async Task start()
         {
-            //var authYouHost = "https://alphabeta.pw/alphabet/authyou/m10";
-            //var updateServerHost = "http://3.34.192.206/launcher/files-al.json";
-            var authYouHost = "https://alphabeta.pw/alphabet/authyou/m11";
-            var updateServerHost = "http://15.165.237.254/launcher/files.json";
+            var authYouHost = "https://alphabeta.pw/alphabet/authyou/m10";
+            var updateServerHost = "http://3.34.192.206/launcher/files-al.json";
+            //var authYouHost = "https://alphabeta.pw/alphabet/authyou/m11";
+            //var updateServerHost = "http://15.165.237.254/launcher/files.json";
             var session = MSession.GetOfflineSession("tester123");
             session.UUID = "4e7e3bea-4e3a-3db3-8ca0-af6a0f6391f8";
 
             var vanilla = new MinecraftPath();
-            var path = new MinecraftPath("testgd");
+            var path = new MinecraftPath("testgd_zip");
             path.Assets = vanilla.Assets;
             path.Runtime = vanilla.Runtime;
 
@@ -59,22 +59,27 @@ namespace AlphabetTest
             //var metadata = await api.GetLauncherMetadata();
             var res = await HttpHelper.HttpClient.GetAsync(updateServerHost);
             var metadata = await res.Content.ReadFromJsonAsync<LauncherMetadata>(JsonHelper.JsonOptions);
-            //metadata.Launcher.GameServerIp = "61.74.166.134";
 
-            var builder = LauncherCore.CreateBuilder(path);
+            var builder = MinecraftLauncherCore.CreateBuilder(path);
             builder.PatchProcess.AddAlphabetFileUpdater(metadata, new AlphabetFileUpdaterOptions
             {
                 LastUpdateFilePath = "last",
                 AlwaysUpdates = new[] { "mods" }
             });
+            //builder.PatchProcess.AddZipFileUpdater(new ZipFileUpdaterOptions(DateTime.Parse("2021-11-19"))
+            //{
+            //    LastUpdateFilePath = "last_zip",
+            //    ZipStream = File.OpenRead("test.zip")
+            //});
             builder.AddAuthYouInteractor(new AuthYouClientSettings
             {
                 ClientApi = new AuthYouClientApi(authYouHost, HttpHelper.HttpClient),
                 Uuid = session.UUID,
                 BasePath = path.BasePath,
-                TargetDirs = new[] { "mods" }
+                TargetDirs = new[] { "mods" },
             });
-            builder.UseDirectServerConnection(metadata.Launcher.GameServerIp);
+            //builder.UseDirectServerConnection(metadata.Launcher.GameServerIp);
+            builder.UseDirectServerConnection("127.0.0.1");
             builder.AddLaunchOptionAction((MLaunchOption option) =>
             {
                 option.MaximumRamMb = 4096;
@@ -85,6 +90,7 @@ namespace AlphabetTest
             core.ProgressChanged += CoreOnProgressChanged;
 
             await core.Patch();
+            //var process = await core.Launch(metadata.Launcher.StartVersion);
             var process = await core.Launch(metadata.Launcher.StartVersion);
             process.Exited += ProcessOnExited;
             process.Interact();

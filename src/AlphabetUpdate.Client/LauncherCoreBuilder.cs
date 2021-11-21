@@ -1,5 +1,4 @@
 ﻿using AlphabetUpdate.Client.PatchHandler;
-using CmlLib.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,42 +9,30 @@ namespace AlphabetUpdate.Client
 {
     public class LauncherCoreBuilder
     {
-        public LauncherCoreBuilder(MinecraftPath path)
+        public LauncherCoreBuilder(string path)
         {
-            this.MinecraftPath = path;
+            this.ClientPath = path;
+            this.PatchProcess = new PatchProcess.PatchProcessBuilder(path);
         }
 
-        public MinecraftPath MinecraftPath { get; private set; }
+        public string ClientPath { get; private set; }
 
         public PatchProcess.PatchProcessBuilder PatchProcess { get; private set; }
-            = new PatchProcess.PatchProcessBuilder();
 
-        private readonly List<ProcessManage.ProcessInteractor> interactors
+        protected readonly List<ProcessManage.ProcessInteractor> interactors
             = new List<ProcessManage.ProcessInteractor>();
-
-        private readonly List<Action<MLaunchOption>> launchOptionActions
-            = new List<Action<MLaunchOption>>();
 
         public void AddProcessInteractor(ProcessManage.ProcessInteractor interactor)
         {
             interactors.Add(interactor);
         }
 
-        public void AddLaunchOptionAction(Action<MLaunchOption> action)
+        public BaseLauncherCore Build()
         {
-            launchOptionActions.Add(action);
-        }
-
-        public LauncherCore Build()
-        {
-            var patchProcess = PatchProcess.Build();
-            var launchOption = new MLaunchOption();
-            launchOptionActions.ForEach(a => a.Invoke(launchOption));
-
-            return new LauncherCore(MinecraftPath, 
-                patchProcess, 
-                interactors.ToArray(),
-                launchOption);
+            return new BaseLauncherCore(
+                ClientPath,
+                PatchProcess.Build(),
+                interactors.ToArray());
         }
     }
 }

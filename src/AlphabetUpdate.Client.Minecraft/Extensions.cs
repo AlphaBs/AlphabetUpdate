@@ -10,7 +10,7 @@ namespace AlphabetUpdate.Client
 {
     public static class Extensions
     {
-        public static void UseDirectServerConnection(this LauncherCoreBuilder builder, string ip, int port)
+        public static void UseDirectServerConnection(this MinecraftLauncherCoreBuilder builder, string ip, int port)
         {
             builder.AddLaunchOptionAction((MLaunchOption launchOption) =>
             {
@@ -19,7 +19,7 @@ namespace AlphabetUpdate.Client
             });
         }
 
-        public static void UseDirectServerConnection(this LauncherCoreBuilder builder, string ipport)
+        public static void UseDirectServerConnection(this MinecraftLauncherCoreBuilder builder, string ipport)
         {
             var ipspl = ipport.Split(':');
             if (ipspl.Length != 0)

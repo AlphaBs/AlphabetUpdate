@@ -7,7 +7,6 @@ using System.Net;
 using System.Threading.Tasks;
 using AlphabetUpdate.Common.Helpers;
 using AlphabetUpdate.Common.Models;
-using CmlLib.Core.Downloader;
 using log4net;
 
 namespace AlphabetUpdate.Client.PatchHandler
@@ -24,7 +23,7 @@ namespace AlphabetUpdate.Client.PatchHandler
             options = _options;
         }
 
-        public event DownloadFileChangedHandler? FileChanged;
+        public event FileChangedEventHandler? FileChanged;
         public event ProgressChangedEventHandler? ProgressChanged;
 
         private readonly UpdateFileCollection updateFileCollection;
@@ -79,7 +78,7 @@ namespace AlphabetUpdate.Client.PatchHandler
                 // keep always up-to-date
                 foreach (var item in options.AlwaysUpdates)
                 {
-                    var path = Path.Combine(context.MinecraftPath.BasePath, item);
+                    var path = Path.Combine(context.ClientPath, item);
                     DeleteInvalidFiles(context, path);
                 }
             }
@@ -117,15 +116,16 @@ namespace AlphabetUpdate.Client.PatchHandler
             int progressed = 0;
             foreach (var item in updateFileCollection.Files)
             {
-                FileChanged?.Invoke(new DownloadFileChangedEventArgs(
-                    type: MFile.Others, 
-                    source: this, 
-                    filename: item.Path, 
-                    total: updateFileCollection.Files.Length, 
-                    progressed: progressed));
+                FileChanged?.Invoke(this, new FileChangedEventArg
+                {
+                    NowFileType = "mod",
+                    NowFileName = item.Path,
+                    TotalFileCount = updateFileCollection.Files.Length,
+                    ProgressedFileCount = progressed
+                });
                 
-                var path = IoHelper.NormalizePath(Path.Combine(context.MinecraftPath.BasePath, item.Path));
-                var disabledPath = context.MinecraftPath + "_b";
+                var path = IoHelper.NormalizePath(Path.Combine(context.ClientPath, item.Path));
+                var disabledPath = path + "_b";
                 
                 var dirPath = Path.GetDirectoryName(path);
                 if (!string.IsNullOrEmpty(dirPath))
@@ -217,7 +217,7 @@ namespace AlphabetUpdate.Client.PatchHandler
 
         public void DeleteInvalidFiles(PatchContext context)
         {
-            DeleteInvalidFiles(context, context.MinecraftPath.BasePath);
+            DeleteInvalidFiles(context, context.ClientPath);
         }
         
         public void DeleteInvalidFiles(PatchContext context, string targetPath)
@@ -229,7 +229,7 @@ namespace AlphabetUpdate.Client.PatchHandler
 
             var f = GetTargetFiles(context, targetPath)
                 .Except(updateFileCollection.Files.Select(x
-                    => IoHelper.NormalizePath(Path.Combine(context.MinecraftPath.BasePath, x.Path))));
+                    => IoHelper.NormalizePath(Path.Combine(context.ClientPath, x.Path))));
 
             f = f.Where(x => !context.IsWhitelistFile(x));
 

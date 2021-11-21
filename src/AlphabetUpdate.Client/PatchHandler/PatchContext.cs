@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using AlphabetUpdate.Common.Helpers;
-using CmlLib.Core;
 
 namespace AlphabetUpdate.Client.PatchHandler
 {
     public class PatchContext
     {
-        public MinecraftPath MinecraftPath { get; private set; }
+        public string ClientPath { get; private set; }
         public event EventHandler<string>? StatusChanged; 
 
         private readonly Dictionary<string, List<string>> tagFileDict;
@@ -19,10 +18,7 @@ namespace AlphabetUpdate.Client.PatchHandler
 
         public PatchContext(PatchOptions options)
         {
-            if (options.MinecraftPath == null)
-                throw new InvalidOperationException("MinecraftPath was null");
-            
-            MinecraftPath = options.MinecraftPath;
+            ClientPath = options.ClientPath;
             tagFileDict = new Dictionary<string, List<string>>();
             
             if (options.WhitelistDirs != null && options.WhitelistDirs.Length > 0)
@@ -31,7 +27,7 @@ namespace AlphabetUpdate.Client.PatchHandler
                 foreach (var dir in options.WhitelistDirs)
                 {
                     whitelistDirs.Add(IoHelper.NormalizePath(Path.Combine(
-                        options.MinecraftPath.BasePath, dir)));
+                        options.ClientPath, dir)));
                 }
             }
 
@@ -41,7 +37,7 @@ namespace AlphabetUpdate.Client.PatchHandler
                 foreach (var file in options.WhitelistFiles)
                 {
                     whitelistFiles.Add(IoHelper.NormalizePath(Path.Combine(
-                        options.MinecraftPath.BasePath, file)));
+                        options.ClientPath, file)));
                 }
             }
 

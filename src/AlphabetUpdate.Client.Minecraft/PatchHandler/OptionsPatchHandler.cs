@@ -4,12 +4,14 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AlphabetUpdate.Client.PatchHandler;
+using AlphabetUpdate.Common.Models;
 using CmlLib.Core;
 using CmlLib.Core.Downloader;
 using CmlLib.Utils;
 using log4net;
 
-namespace AlphabetUpdate.Client.PatchHandler
+namespace AlphabetUpdate.Client.Minecraft.PatchHandler
 {
     public class OptionsPatchHandler : IPatchHandler
     {
@@ -22,12 +24,12 @@ namespace AlphabetUpdate.Client.PatchHandler
 
         private readonly GameOptions gameOptions;
 
-        public event DownloadFileChangedHandler? FileChanged;
+        public event FileChangedEventHandler? FileChanged;
         public event ProgressChangedEventHandler? ProgressChanged;
 
         public Task Patch(PatchContext context)
         {
-            var optionPath = Path.Combine(context.MinecraftPath.BasePath, "options.txt");
+            var optionPath = Path.Combine(context.ClientPath, "options.txt");
 
             GameOptionsFile optionFile;
             if (File.Exists(optionPath))

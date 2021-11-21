@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using AlphabetUpdate.Common.Helpers;
-using CmlLib.Core.Downloader;
+using AlphabetUpdate.Common.Models;
 using ICSharpCode.SharpZipLib.Zip;
 using log4net;
 
@@ -13,7 +13,7 @@ namespace AlphabetUpdate.Client.PatchHandler
     {
         private static readonly ILog logger = LogManager.GetLogger(nameof(ZipFileUpdater));
 
-        public event DownloadFileChangedHandler? FileChanged;
+        public event FileChangedEventHandler? FileChanged;
         public event ProgressChangedEventHandler? ProgressChanged;
 
         private readonly ZipFileUpdaterOptions options;
@@ -59,7 +59,7 @@ namespace AlphabetUpdate.Client.PatchHandler
             if (checkLatestVersion())
                 return;
 
-            var patchDir = new DirectoryInfo(context.MinecraftPath.BasePath);
+            var patchDir = new DirectoryInfo(context.ClientPath);
             foreach (var dir in patchDir.GetDirectories())
             {
                 try

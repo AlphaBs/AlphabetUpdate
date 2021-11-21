@@ -1,4 +1,6 @@
-﻿using CmlLib.Core;
+﻿using AlphabetUpdate.Client.PatchHandler;
+using AlphabetUpdate.Common.Models;
+using CmlLib.Core;
 using CmlLib.Core.Downloader;
 using log4net;
 using System;
@@ -9,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlphabetUpdate.Client.PatchHandler
+namespace AlphabetUpdate.Client.Minecraft.PatchHandler
 {
     public class ShaderOptionsPatchHandler : IPatchHandler
     {
@@ -22,7 +24,7 @@ namespace AlphabetUpdate.Client.PatchHandler
 
         private readonly ShaderOptions shaderOptions;
 
-        public event DownloadFileChangedHandler? FileChanged;
+        public event FileChangedEventHandler? FileChanged;
         public event ProgressChangedEventHandler? ProgressChanged;
 
         public Task Patch(PatchContext context)

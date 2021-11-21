@@ -36,19 +36,5 @@ namespace AlphabetUpdate.Client.PatchHandler
             b.AddHandler(new ZipFileUpdater(options));
             return b;
         }
-
-        public static PatchProcessBuilder AddGameOptionsPatcher(this PatchProcessBuilder b,
-            GameOptions options)
-        {
-            b.AddHandler(new OptionsPatchHandler(options));
-            return b;
-        }
-
-        public static PatchProcessBuilder AddShaderOptionsPatcher(this PatchProcessBuilder b,
-            ShaderOptions options)
-        {
-            b.AddHandler(new ShaderOptionsPatchHandler(options));
-            return b;
-        }
     }
 }
