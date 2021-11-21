@@ -79,8 +79,12 @@ namespace AlphabetUpdate.Client.PatchHandler
             patchDir.Create();
             await unzip(options.ZipStream, patchDir.FullName);
 
-            if (!string.IsNullOrEmpty(options.LastUpdateFilePath))
-                File.WriteAllText(options.LastUpdateFilePath, options.LatestVersion.ToString("o"));
+            var content = options.LatestVersion.ToString("o");
+            var lastUpdateFileDir = Path.GetDirectoryName(options.LastUpdateFilePath);
+            if (!string.IsNullOrEmpty(lastUpdateFileDir))
+                Directory.CreateDirectory(lastUpdateFileDir);
+            File.WriteAllText(options.LastUpdateFilePath, content);
+            logger.Info("write LastUpdate to " + options.LastUpdateFilePath);
         }
 
         private async Task unzip(Stream inStream, string path)
