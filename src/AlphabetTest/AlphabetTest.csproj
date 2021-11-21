@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -6,6 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\AlphabetUpdate.Client.Minecraft\AlphabetUpdate.Client.Minecraft.csproj" />
       <ProjectReference Include="..\AlphabetUpdate.Client\AlphabetUpdate.Client.csproj" />
       <ProjectReference Include="..\AlphabetUpdate.Common\AlphabetUpdate.Common.csproj" />
       <ProjectReference Include="..\AuthYouClient\AuthYouClient.csproj" />

@@ -51,7 +51,7 @@ namespace AlphabetTest
             session.UUID = "4e7e3bea-4e3a-3db3-8ca0-af6a0f6391f8";
 
             var vanilla = new MinecraftPath();
-            var path = new MinecraftPath("testgd_zip");
+            var path = new MinecraftPath("testgd");
             path.Assets = vanilla.Assets;
             path.Runtime = vanilla.Runtime;
 
@@ -85,7 +85,7 @@ namespace AlphabetTest
                 option.MaximumRamMb = 4096;
             });
 
-            var core = builder.Build();
+            var core = builder.BuildMinecraftLauncher();
             core.FileChanged += CoreOnFileChanged;
             core.ProgressChanged += CoreOnProgressChanged;
 
@@ -113,9 +113,9 @@ namespace AlphabetTest
             Console.WriteLine(e.ProgressPercentage);
         }
 
-        private void CoreOnFileChanged(DownloadFileChangedEventArgs e)
+        private void CoreOnFileChanged(object sender, FileChangedEventArg e)
         {
-            Console.WriteLine($"{e.FileName} {e.ProgressedFileCount} {e.TotalFileCount}");
+            Console.WriteLine($"{e.NowFileName} {e.ProgressedFileCount} {e.TotalFileCount}");
         }
     }
 }
