@@ -41,7 +41,7 @@ namespace AlphabetUpdateServer.Core
                 string escapedPath = underPath.Replace('\\', '/');
                 var f = new UpdateFile
                 {
-                    Hash = CryptoHelper.HashMd5(file.FullName),
+                    Hash = CryptoHelper.ToHexString(CryptoHelper.HashMd5(file.FullName)),
                     Path = escapedPath,
                     Tags = null,
                     Url = null
