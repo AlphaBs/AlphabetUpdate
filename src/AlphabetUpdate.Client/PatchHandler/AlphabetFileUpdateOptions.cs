@@ -14,5 +14,6 @@ namespace AlphabetUpdate.Client.PatchHandler
         public DateTime? LastUpdate { get; set; }
         public string? LastUpdateFilePath { get; set; }
         public string[]? AlwaysUpdates { get; set; }
+        public bool SkipEmptyUrl { get; set; }
     }
 }

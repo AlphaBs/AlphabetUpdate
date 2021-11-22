@@ -174,6 +174,14 @@ namespace AlphabetUpdate.Client.PatchHandler
                         return;
 
                     var url = GetUrl(file);
+                    if (string.IsNullOrEmpty(url))
+                    {
+                        if (options.SkipEmptyUrl)
+                            return;
+                        else
+                            throw new PatchException("No url");
+                    }
+
                     await webClient.DownloadFileTaskAsync(url, path);
 
                     if (CheckFileValidation(path, file.Hash))
