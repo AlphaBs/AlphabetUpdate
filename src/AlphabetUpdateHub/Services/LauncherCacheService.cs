@@ -25,9 +25,6 @@ namespace AlphabetUpdateHub.Services
 
         public List<LauncherMetadataCache> Get() =>
             _caches.Find(x => true).ToList();
-
-        public Task<LauncherMetadataCache?> Get(string id) =>
-            _caches.Find(x => x.Id == id).FirstOrDefaultAsync()!;
         
         public Task<LauncherMetadataCache?> GetByServerId(string id) =>
             _caches.Find(x => x.ServerId == id).FirstOrDefaultAsync()!;
@@ -53,10 +50,10 @@ namespace AlphabetUpdateHub.Services
         public async Task<LauncherMetadata?> GetMetadata(string serverId)
         {
             var cache = await this.GetByServerId(serverId);
-            if (cache == null || cache.LastUpdate.AddMinutes(60 * 24) > DateTime.Now)
+            if (cache == null || cache.LastMetadataUpdate.AddMinutes(60 * 24) > DateTime.Now)
                 return null;
 
-            return cache.Launcher;
+            return cache.LauncherMetadata;
         }
 
         public async Task<LauncherMetadata?> UpdateMetadata(AlphabetUpdateServer server)
@@ -70,13 +67,13 @@ namespace AlphabetUpdateHub.Services
             var cache = new LauncherMetadataCache
             {
                 ServerId = server.ServerId,
-                LastUpdate = DateTime.Now,
-                Launcher = metadata
+                LastMetadataUpdate = DateTime.Now,
+                LauncherMetadata = metadata
             };
 
             await this.CreateOrUpdate(cache);
 
-            return cache.Launcher;
+            return cache.LauncherMetadata;
         }
     }
 }
