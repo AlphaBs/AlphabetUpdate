@@ -181,8 +181,7 @@ namespace AlphabetUpdate.Client.PatchHandler
                     {
                         if (options.SkipEmptyUrl)
                             return;
-                        else
-                            throw new PatchException("No url");
+                        throw new PatchException("No url");
                     }
 
                     await webClient.DownloadFileTaskAsync(url, path);

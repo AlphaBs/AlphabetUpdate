@@ -43,6 +43,9 @@ namespace AlphabetUpdate.Client.PatchHandler
 
             if (options.Tags != null && options.Tags.Length > 0)
                 tags = new HashSet<string>(options.Tags);
+
+            if (options.IgnoreTags != null && options.IgnoreTags.Length > 0)
+                ignoreTags = new HashSet<string>(options.IgnoreTags);
         }
 
         public List<string> GetTagFilePathList(string tag)
@@ -77,7 +80,9 @@ namespace AlphabetUpdate.Client.PatchHandler
         {
             if (string.IsNullOrEmpty(tag))
                 return true;
-            return tag == "common" || tag == "forge";
+            if (ignoreTags == null)
+                return false;
+            return ignoreTags.Contains(tag);
         }
 
         public virtual void SetStatus(string message)
