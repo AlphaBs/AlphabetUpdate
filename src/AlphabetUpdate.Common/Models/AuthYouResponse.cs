@@ -16,6 +16,6 @@ namespace AuthYouClient.Models
         public bool Result { get; set; }
 
         [JsonPropertyName("msg")]
-        public string Message { get; set; }
+        public string? Message { get; set; }
     }
 }

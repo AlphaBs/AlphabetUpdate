@@ -13,8 +13,8 @@ namespace AuthYouClient.Models
     public class HashedFile
     {
         [JsonPropertyName("hash")]
-        public string Hash { get; set; }
+        public string? Hash { get; set; }
         [JsonPropertyName("path")]
-        public string Path { get; set; }
+        public string? Path { get; set; }
     }
 }

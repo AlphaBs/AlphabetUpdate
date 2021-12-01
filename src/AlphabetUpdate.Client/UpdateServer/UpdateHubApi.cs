@@ -29,7 +29,7 @@ namespace AlphabetUpdate.Client.UpdateServer
         {
             var res = await httpClient.GetAsync($"{host}/{path}");
             var resStr = await res.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(resStr, JsonHelper.JsonOptions);
+            return JsonSerializer.Deserialize<T>(resStr, JsonHelper.JsonOptions); // allow null
         }
 
         public Task<LauncherMetadata?> GetLauncherMetadata()

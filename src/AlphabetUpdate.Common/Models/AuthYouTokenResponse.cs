@@ -12,9 +12,9 @@ namespace AuthYouClient.Models
     public class AuthYouTokenResponse : AuthYouResponse
     {
         [JsonPropertyName("serverId")]
-        public string ServerId { get; set; }
+        public string? ServerId { get; set; }
 
         [JsonPropertyName("token")]
-        public string Token { get; set; }
+        public string? Token { get; set; }
     }
 }

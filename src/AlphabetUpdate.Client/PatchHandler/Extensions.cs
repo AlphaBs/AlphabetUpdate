@@ -19,14 +19,15 @@ namespace AlphabetUpdate.Client.PatchHandler
         public static PatchProcessBuilder AddAlphabetFileUpdater(this PatchProcessBuilder b,
             LauncherMetadata metadata, AlphabetFileUpdaterOptions options)
         {
-            options.BaseUrl = metadata.Launcher.LauncherServer;
+            options.BaseUrl = metadata.Launcher?.LauncherServer;
             b.SetOptions(o =>
             {
-                o.WhitelistDirs = metadata.Launcher.WhitelistDirs;
-                o.WhitelistFiles = metadata.Launcher.WhitelistFiles;
+                o.WhitelistDirs = metadata.Launcher?.WhitelistDirs;
+                o.WhitelistFiles = metadata.Launcher?.WhitelistFiles;
             });
 
-            b.AddHandler(new AlphabetFileUpdater(metadata.Files, options));
+            if (metadata.Files != null)
+                b.AddHandler(new AlphabetFileUpdater(metadata.Files, options));
             return b;
         }
 

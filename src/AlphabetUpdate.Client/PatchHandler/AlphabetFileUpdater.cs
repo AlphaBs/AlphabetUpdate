@@ -111,6 +111,9 @@ namespace AlphabetUpdate.Client.PatchHandler
         
         public async Task DownloadFiles(PatchContext context)
         {
+            if (updateFileCollection.Files == null)
+                return;
+
             var webClient = initializeWebClient();
             
             int progressed = 0;
@@ -131,7 +134,7 @@ namespace AlphabetUpdate.Client.PatchHandler
                 if (!string.IsNullOrEmpty(dirPath))
                     Directory.CreateDirectory(dirPath);
 
-                if (context.IsTagContains(item.Tags))
+                if (item.Tags == null || context.IsTagContains(item.Tags))
                 {
                     if (File.Exists(disabledPath))
                     {
@@ -143,7 +146,7 @@ namespace AlphabetUpdate.Client.PatchHandler
                     if (!context.IsWhitelistFile(path))
                         await CheckAndDownloadFile(webClient, path, item);
 
-                    if (!context.IsIgnoreTagContains(item.Tags))
+                    if (item.Tags != null && !context.IsIgnoreTagContains(item.Tags))
                         context.GetTagFilePathList(item.Tags).Add(path);
                 }
                 else
@@ -187,6 +190,10 @@ namespace AlphabetUpdate.Client.PatchHandler
                     if (CheckFileValidation(path, file.Hash))
                         return;
                 }
+                catch (PatchException)
+                {
+                    throw;
+                }
                 catch (Exception ex)
                 {
                     logger.Error($"CheckAndDownloadFile, try {i+1} times");
@@ -195,7 +202,7 @@ namespace AlphabetUpdate.Client.PatchHandler
             }
         }
 
-        private string GetUrl(UpdateFile file)
+        private string? GetUrl(UpdateFile file)
         {
             if (string.IsNullOrEmpty(file.Url))
             {
@@ -203,15 +210,15 @@ namespace AlphabetUpdate.Client.PatchHandler
                     return "";
                 
                 var url = options.BaseUrl;
-                if (!url.EndsWith("/"))
+                if (!string.IsNullOrEmpty(url) && !url.EndsWith("/"))
                     url += "/";
-                return url + file.Path.Replace('\\', '/');
+                return url + file.Path?.Replace('\\', '/');
             }
 
             return file.Url;
         }
 
-        private bool CheckFileValidation(string path, string compareHash)
+        private bool CheckFileValidation(string path, string? compareHash)
         {
             if (!File.Exists(path))
                 return false;
