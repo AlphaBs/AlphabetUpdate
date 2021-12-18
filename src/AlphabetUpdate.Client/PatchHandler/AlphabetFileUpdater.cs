@@ -142,9 +142,9 @@ namespace AlphabetUpdate.Client.PatchHandler
                             File.Delete(path);
                         File.Move(disabledPath, path);
                     }
-                    
-                    if (!context.IsWhitelistFile(path))
-                        await CheckAndDownloadFile(webClient, path, item);
+
+                    var isWhitelist = context.IsWhitelistFile(path);
+                    await CheckAndDownloadFile(webClient, path, item, checkHash: !isWhitelist);
 
                     if (item.Tags != null && !context.IsIgnoreTagContains(item.Tags))
                         context.GetTagFilePathList(item.Tags).Add(path);
@@ -167,13 +167,13 @@ namespace AlphabetUpdate.Client.PatchHandler
             webClient.Dispose();
         }
 
-        private async Task CheckAndDownloadFile(WebClient webClient, string path, UpdateFile file)
+        private async Task CheckAndDownloadFile(WebClient webClient, string path, UpdateFile file, bool checkHash)
         {
             for (int i = 0; i < options.RetryCount; i++)
             {
                 try
                 {
-                    if (CheckFileValidation(path, file.Hash))
+                    if (CheckFileValidation(path, file.Hash, checkHash: checkHash))
                         return;
 
                     var url = GetUrl(file);
@@ -186,7 +186,7 @@ namespace AlphabetUpdate.Client.PatchHandler
 
                     await webClient.DownloadFileTaskAsync(url, path);
 
-                    if (CheckFileValidation(path, file.Hash))
+                    if (CheckFileValidation(path, file.Hash, checkHash: checkHash))
                         return;
                 }
                 catch (PatchException)
@@ -217,12 +217,12 @@ namespace AlphabetUpdate.Client.PatchHandler
             return file.Url;
         }
 
-        private bool CheckFileValidation(string path, string? compareHash)
+        private bool CheckFileValidation(string path, string? compareHash, bool checkHash)
         {
             if (!File.Exists(path))
                 return false;
 
-            if (!options.CheckHash)
+            if (!checkHash || !options.CheckHash)
                 return true;
 
             var computedHash = CryptoHelper.ToHexString(CryptoHelper.HashMd5(path));
