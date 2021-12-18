@@ -15,7 +15,7 @@ namespace AlphabetUpdate.Client.ProcessManage
         public ProcessStatus Status { get; private set; }
         public  Process Process { get; }
 
-        private Exception? processException;
+        public Exception? ProcessException { get; private set; }
         private string? lastOutput;
         
         public ProcessManager(Process proc, ProcessInteractor[]? interactors)
@@ -29,11 +29,10 @@ namespace AlphabetUpdate.Client.ProcessManage
         public void Start()
         {
             logger.Info("Setting Process");
-            processException = null;
+            ProcessException = null;
             Process.StartInfo.UseShellExecute = false;
             Process.StartInfo.RedirectStandardError = true;
             Process.StartInfo.RedirectStandardOutput = true;
-            Process.EnableRaisingEvents = true;
             Process.ErrorDataReceived += Process_OutputDataReceived;
             Process.OutputDataReceived += Process_OutputDataReceived;
             Process.Exited += Process_Exited;
@@ -47,6 +46,7 @@ namespace AlphabetUpdate.Client.ProcessManage
 
         public void Interact()
         {
+            Process.EnableRaisingEvents = true;
             if (processInteractors != null)
             {
                 foreach (var inter in processInteractors)
@@ -94,7 +94,7 @@ namespace AlphabetUpdate.Client.ProcessManage
             if (Status != ProcessStatus.Running)
                 return;
 
-            processException = e;
+            ProcessException = e;
             Status = ProcessStatus.Killing;
             Process.Kill();
         }
@@ -106,7 +106,7 @@ namespace AlphabetUpdate.Client.ProcessManage
             ProcessResult result = new ProcessResult(Process.ExitCode)
             {
                 Message = lastOutput,
-                Exception = processException
+                Exception = ProcessException
             };
 
             processAction(p => p.OnProcessExited());
