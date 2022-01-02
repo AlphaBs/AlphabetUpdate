@@ -14,7 +14,7 @@ namespace AlphabetUpdateServer.Controllers
 {
     [ApiController]
     [Route("v1/[controller]")]
-    [Authorize(Policy="manager")]
+    [Authorize(Roles = "manager")]
     public class UpdateFileController : ControllerBase
     {
         private readonly ILogger<UpdateFileController> logger;

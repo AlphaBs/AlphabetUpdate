@@ -2,11 +2,15 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using AlphabetUpdateServer.BasicAuth;
+using AlphabetUpdateServer.Jwt;
 using AlphabetUpdateServer.Models;
 using AlphabetUpdateServer.Services;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -64,25 +68,36 @@ namespace AlphabetUpdateServer
             else
                 services.AddSingleton<ISecureStorage, SecureConfigStorage>();
 
-            var secretKey = Convert.FromBase64String(configuration["SecureStorage:SecretKey"]);
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            var authSchemeConfig = configuration.GetValue<string>("Auth:Scheme").ToLower();
+            
+            string authenticationScheme;
+            if (authSchemeConfig == "jwt")
+                authenticationScheme = JwtBearerDefaults.AuthenticationScheme;
+            else
+                authenticationScheme = BasicAuthenticationScheme.AuthenticationScheme;
+
+            services.AddAuthentication(authenticationScheme)
                 .AddJwtBearer(options =>
                 {
+                    var secretKey = Convert.FromBase64String(configuration["SecureStorage:SecretKey"]);
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
                         ValidIssuer = configuration["Auth:Issuer"],
                         ValidateAudience = false,
                         ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+                        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+                        RoleClaimType = "r"
                     };
-                });
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("manager",
-                    policy => policy.Requirements.Add(new JwtRequirement("manager")));
-            });
-            services.AddSingleton<IAuthorizationHandler, JwtAuthorizationHandler>();
+                    options.Events = new JwtBearerEvents()
+                    {
+                        OnTokenValidated = JwtTokenValidator.ValidateAudience
+                    };
+                })
+                .AddBasicAuth(null);
+
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IClientAddressResolver, RemoteClientAddressResolver>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -101,17 +116,31 @@ namespace AlphabetUpdateServer
                 app.UseDirectoryBrowser();
             }
 
+            app.UseExceptionHandler(appError =>
+            {
+                appError.Run(async context =>
+                {
+                    var exceptionHandler = context.Features.Get<IExceptionHandlerFeature>();
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsJsonAsync(new
+                    {
+                        Result = false,
+                        Message = exceptionHandler.Error
+                    });
+                });
+            });
+
             var ss = app.ApplicationServices.GetService<ISecureStorage>();
             ss?.Load().GetAwaiter().GetResult();
             
             //app.UseHttpsRedirection();
-            var forwardedOptions = new ForwardedHeadersOptions
-            {
-                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-            };
-            forwardedOptions.KnownProxies.Clear();
-            forwardedOptions.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("172.16.0.0"), 12));
-            app.UseForwardedHeaders(forwardedOptions);
+            //var forwardedOptions = new ForwardedHeadersOptions
+            //{
+            //    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            //};
+            //forwardedOptions.KnownProxies.Clear();
+            //forwardedOptions.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("172.16.0.0"), 12));
+            //app.UseForwardedHeaders(forwardedOptions);
 
             app.UseRouting();
 

@@ -18,7 +18,7 @@ namespace AlphabetUpdateServer.Controllers
 {
     [Route("v1/[controller]")]
     [ApiController]
-    [Authorize(Policy = "manager")]
+    [Authorize(Roles = "manager")]
     public class LauncherController : ControllerBase
     {
         private readonly ILogger<LauncherController> logger;
@@ -44,7 +44,6 @@ namespace AlphabetUpdateServer.Controllers
         }
 
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> Get()
         {
             if (!System.IO.File.Exists(launcherCachePath))
