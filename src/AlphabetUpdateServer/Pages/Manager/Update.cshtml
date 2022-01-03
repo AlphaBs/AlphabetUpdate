@@ -1,0 +1,35 @@
+﻿@page
+@model AlphabetUpdateServer.Pages.Manager.Update
+
+@{
+    Layout = "_Layout";
+}
+
+<h2>파일 업데이트 완료</h2>
+<a asp-page="./Index"><h3>돌아가기</h3></a>
+<h3>결과</h3>
+@if (Model.Files?.Files == null || Model.Files.Files.Length == 0)
+{
+    <p>(경고) 업데이트 파일이 없습니다</p>
+}
+else
+{
+    <table style="margin-top: 10px;">
+        <tr>
+            <th>Hash</th>
+            <th>Path</th>
+            <th>Url</th>
+            <th>Tags</th>
+        </tr>
+        @foreach (var file in Model.Files.Files)
+        {
+            <tr>
+                <td>@file.Hash</td>
+                <td>@file.Path</td>
+                <td>@file.Url</td>
+                <td>@string.Join(',', file.Tags)</td>
+            </tr>
+        }
+    </table>
+}
+<a asp-page="./Index"><h2>돌아가기</h2></a>

@@ -1,14 +1,17 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 
 namespace AlphabetUpdate.Common.Helpers
 {
-    public class IoHelper
+    public static class IoHelper
     {
-        public static string NormalizePath(string path)
+        public static string NormalizePath(string path, bool fullPath=true)
         {
-            return Path.GetFullPath(path)
+            if (fullPath)
+                path = Path.GetFullPath(path);
+            return path
                 .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
-                .TrimEnd(Path.DirectorySeparatorChar);
+                .Trim(Path.DirectorySeparatorChar);
         }
 
         public static void DeleteDirectory(string target_dir)
@@ -23,6 +26,13 @@ namespace AlphabetUpdate.Common.Helpers
             foreach (string target_dir1 in directories)
                 DeleteDirectory(target_dir1);
             Directory.Delete(target_dir, true);
+        }
+
+        public static async Task CopyFileAsync(string from, string to)
+        {
+            using var fromStream = File.OpenRead(from);
+            using var toStream = File.OpenWrite(to);
+            await fromStream.CopyToAsync(toStream);
         }
     }
 }

@@ -49,6 +49,7 @@ namespace AlphabetUpdateServer
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+            services.AddRazorPages();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "AlphabetUpdateServer", Version = "v1" });
@@ -96,6 +97,8 @@ namespace AlphabetUpdateServer
                 })
                 .AddBasicAuth(null);
 
+            services.AddScoped<ILauncherService, LauncherService>();
+            services.AddScoped<IUpdateService, UpdateService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IClientAddressResolver, RemoteClientAddressResolver>();
         }
@@ -150,6 +153,7 @@ namespace AlphabetUpdateServer
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapRazorPages();
             });
             
             logger.LogInformation("WebRootPath: {WebRootPath}", environment.WebRootPath);

@@ -6,8 +6,8 @@ namespace AlphabetUpdateServer.Models
     {
         public static readonly string Auth = "Auth";
 
-        [Required]
-        public string Issuer { get; init; }
+        [Required] 
+        public string Issuer { get; init; } = "";
         
         [Required]
         [Range(0, 24 * 60)]

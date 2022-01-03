@@ -1,0 +1,99 @@
+﻿@page
+@using System.Web
+@model AlphabetUpdateServer.Pages.Manager.Index
+
+@{
+    Layout = "_Layout";
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Status))
+{
+    <h3>@Model.Status</h3>
+}
+
+<h2>런처 정보</h2>
+<form method="POST">
+    <br/>
+    <label for="name">이름: </label>
+    <input id="name" name="name" type="text" readonly value="@Model.Info?.Name"/>
+
+    <br/>
+    <label for="gameServerIp">서버 아이피: </label>
+    <input id="gameServerIp" name="gameServerIp" type="text" value="@Model.Info?.GameServerIp"/>
+
+    <br/>
+    <label for="startVersion">실행할 버전: </label>
+    <input id="startVersion" name="startVersion" type="text" value="@Model.Info?.StartVersion"/>
+
+    <br/>
+    <label for="startVanillaVersion">바닐라 버전: </label>
+    <input id="startVanillaVersion" name="startVanillaVersion" type="text" value="@Model.Info?.StartVanillaVersion"/>
+
+    <br/>
+    <label for="launcherServer">런처 서버: </label>
+    <input id="launcherServer" name="launcherServer" type="text" value="@Model.Info?.LauncherServer"/>
+
+    <br/>
+    <label for="whitelistFiles">업데이트 제외 파일 목록: </label>
+    <br/>
+    <textarea id="whitelistFiles" name="whitelistFiles" cols="60" rows="6">
+@string.Join('\n', Model.Info?.WhitelistFiles ?? Array.Empty<string>())</textarea>
+
+    <br/>
+    <label for="whitelistDirs">업데이트 제외 폴더 목록: </label>
+    <br/>
+    <textarea id="whitelistDirs" name="whitelistDirs" cols="60" rows="6">
+@string.Join('\n', Model.Info?.WhitelistDirs ?? Array.Empty<string>())</textarea>
+
+    <br/>
+    <p>런처 정보 관리: </p>
+    <input class="button-submit" type="submit" value="저장" asp-page-handler="UpdateInfo"/>
+    <input class="button-submit" type="submit" value="초기화" asp-page-handler="DeleteInfo" disabled>
+</form>
+
+<h2>파일 업데이트</h2>
+<p>마지막 파일 업데이트: @Model.Files?.LastUpdate</p>
+
+<form method="POST" asp-page="Update">
+    <label for="hashAlgorithm">해쉬 알고리즘: </label>
+    <input id="hashAlgorithm" type="text" readonly value="@Model.Files?.HashAlgorithm"/>
+    <br/>
+    <input type="submit" value="파일 업데이트"/>
+</form>
+
+@if (Model.Files?.Files == null || Model.Files.Files.Length == 0)
+{
+    <p>(경고) 업데이트 파일이 없습니다</p>
+}
+else
+{
+    <table style="margin-top: 10px;">
+        <tr>
+            <th>Hash</th>
+            <th>Path</th>
+            <th>Url</th>
+            <th>Tags</th>
+        </tr>
+        @foreach (var file in Model.Files.Files)
+        {
+            <tr>
+                <td>@file.Hash</td>
+                <td>@file.Path</td>
+                <td>@file.Url</td>
+                <td>@string.Join(',', file.Tags)</td>
+            </tr>
+        }
+    </table>
+}
+<script>
+// prevent resubmission of form data
+if (window.history.replaceState) {
+    window.history.replaceState( null, null, window.location.href );
+}
+@if (!string.IsNullOrWhiteSpace(Model.Message))
+{
+    <text>
+        alert('@Html.Raw(Model.Message)');
+    </text>
+}
+</script>
