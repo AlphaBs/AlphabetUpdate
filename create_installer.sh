@@ -1,5 +1,7 @@
 #! /bin/bash
 
+echo Start create_installer
+
 mkdir ./app
 cp .env ./app
 cp ./app.sh ./app
@@ -11,4 +13,4 @@ cp ./volume/appsettings.json ./app/volume
 
 tar czf app.tar.gz ./app/*
 rm -r ./app
-echo Done.
+echo Done create_installer

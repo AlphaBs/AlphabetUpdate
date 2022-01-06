@@ -12,7 +12,6 @@ services:
       - install
     environment:
       - "START_OPTION=INSTALL"
-      - "DEBUG=TRUE"
 
   asp:
     image: ksi123456ab/alphabet-update-server
