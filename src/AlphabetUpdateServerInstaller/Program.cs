@@ -11,6 +11,7 @@ using AlphabetUpdateServer.Services;
 using Newtonsoft.Json.Linq;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 
 namespace AlphabetUpdateServerInstaller
 {
@@ -81,8 +82,8 @@ namespace AlphabetUpdateServerInstaller
 
                     serverPassword = new ServerPassword
                     {
-                        AesIv = secureKeys.AesIV,
-                        AesKey = secureKeys.AesKey,
+                        AesIv = secureKeys?.AesIV,
+                        AesKey = secureKeys?.AesKey,
                         RawPassword = rawPassword
                     };
                 }
@@ -122,9 +123,42 @@ namespace AlphabetUpdateServerInstaller
             Console.WriteLine("\n===== [Auth] =====");
             var auth = new AuthOptions()
             {
+                Scheme = query("Scheme", string.IsNullOrWhiteSpace(app.Auth.Scheme) ? "basic" : app.Auth.Scheme),
                 Issuer = query("Issuer", updateFile.Name),
                 ExpiresM = int.Parse(query("ExpiresM", "30"))
             };
+
+            if (auth.Scheme == "basic")
+            {
+                User? user = null;
+                if (app.Users != null)
+                {
+                    foreach (var item in app.Users)
+                    {
+                        if (item.Username == "admin")
+                        {
+                            user = item;
+                            break;
+                        }
+                    }
+
+                    if (app.Users.Count != 0)
+                        user = app.Users[0];
+                }
+                else
+                    app.Users = new List<User>();
+
+                if (user == null)
+                {
+                    user = new User();
+                    app.Users.Add(user);
+                }
+
+                user.Username = query("Basic Auth Admin Username", user?.Username ?? "admin");
+                user.Password = query("Basic Auth Admin Password", user?.Password ?? "admin");
+                if (string.IsNullOrEmpty(user.Role))
+                    user.Role = "manager";
+            }
 
             app.UpdateFile = updateFile;
             app.Auth = auth;
@@ -201,7 +235,8 @@ namespace AlphabetUpdateServerInstaller
             if (!File.Exists(options.AppSettingsPath))
                 return null;
 
-            return await Util.ReadJson<AppSettings>(options.AppSettingsPath);
+            return await Util.ReadJson<AppSettings>(options.AppSettingsPath)
+                ?? new AppSettings();
         }
 
         private async Task writeAppSettings(AppSettings app)
@@ -254,7 +289,7 @@ namespace AlphabetUpdateServerInstaller
             Console.WriteLine(JsonSerializer.Serialize(obj));
         }
 
-        private string query(string name, string defaultValue)
+        private string query(string name, string? defaultValue)
         {
             Console.Write($"{name}? ");
             if (!string.IsNullOrEmpty(defaultValue))
@@ -264,7 +299,7 @@ namespace AlphabetUpdateServerInstaller
 
             var v = Console.ReadLine();
             if (string.IsNullOrEmpty(v))
-                return defaultValue;
+                return defaultValue ?? "";
             else
                 return v;
 
