@@ -2,7 +2,7 @@
 using AlphabetUpdateServer.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 
-namespace AlphabetUpdateServer.Jwt
+namespace AlphabetUpdateServer.Services
 {
     public static class JwtTokenValidator
     {

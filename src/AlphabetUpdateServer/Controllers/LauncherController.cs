@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using AlphabetUpdate.Common.Models;
 using AlphabetUpdateServer.Services;
 using Microsoft.AspNetCore.Authorization;
+using AlphabetUpdateServer.Services.Updater;
+using System.Collections.Generic;
 
 namespace AlphabetUpdateServer.Controllers
 {
@@ -14,16 +16,16 @@ namespace AlphabetUpdateServer.Controllers
     {
         private readonly ILogger<LauncherController> logger;
         private readonly ILauncherService launcher;
-        private readonly IUpdateService updater;
+        private readonly IEnumerable<IUpdateService> updaters;
         
         public LauncherController(
             ILogger<LauncherController> _logger, 
             ILauncherService launcherService,
-            IUpdateService updateService)
+            IEnumerable<IUpdateService> updateServices)
         {
             this.logger = _logger;
             this.launcher = launcherService;
-            this.updater = updateService;
+            this.updaters = updateServices;
         }
 
         [HttpGet]
@@ -48,7 +50,10 @@ namespace AlphabetUpdateServer.Controllers
             if (updateFiles?.Files == null)
                 return BadRequest("No Files");
 
-            updateFiles = await updater.UpdateFiles(updateFiles);
+            foreach (var updater in updaters)
+            {
+                updateFiles = await updater.Update(updateFiles);
+            }
             return Ok(await launcher.UpdateFiles(updateFiles));
         }
 

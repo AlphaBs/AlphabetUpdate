@@ -13,20 +13,20 @@ namespace AlphabetUpdateServer.Controllers
     [Authorize(Roles = "manager")]
     public class ScanController : ControllerBase
     {
-        private readonly IUpdateService updater;
+        private readonly IScanFileService scanner;
         private readonly ILogger<ScanController> logger;
         
         public ScanController(
-            IUpdateService updateService,
+            IScanFileService scanService,
             ILogger<ScanController> log)
         {
-            updater = updateService;
+            scanner = scanService;
             logger = log;
         }
         
         public async Task<IActionResult> Get()
         {
-            var files = await updater.ScanFiles();
+            var files = await scanner.ScanFile();
             var json = JsonSerializer.Serialize(files, JsonHelper.JsonOptions);
             return Ok(json);
         }

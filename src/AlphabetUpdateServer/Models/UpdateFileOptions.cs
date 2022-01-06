@@ -18,5 +18,8 @@ namespace AlphabetUpdateServer.Models
         public string LauncherInfoPath { get; set; }
         [Required]
         public string FilesCachePath { get; set; }
+
+        public ExternalServerOptions[]? ExternalServer { get; set; }
+
     }
 }

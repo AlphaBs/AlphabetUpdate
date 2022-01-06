@@ -6,6 +6,9 @@ namespace AlphabetUpdateServer.Models
     {
         public static readonly string Auth = "Auth";
 
+        [Required]
+        public string Scheme { get; set; } = "basic";
+
         [Required] 
         public string Issuer { get; init; } = "";
         

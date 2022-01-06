@@ -3,9 +3,9 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using AlphabetUpdateServer.BasicAuth;
-using AlphabetUpdateServer.Jwt;
 using AlphabetUpdateServer.Models;
 using AlphabetUpdateServer.Services;
+using AlphabetUpdateServer.Services.Updater;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -74,8 +74,10 @@ namespace AlphabetUpdateServer
             string authenticationScheme;
             if (authSchemeConfig == "jwt")
                 authenticationScheme = JwtBearerDefaults.AuthenticationScheme;
-            else
+            else if (authSchemeConfig == "basic")
                 authenticationScheme = BasicAuthenticationScheme.AuthenticationScheme;
+            else
+                authenticationScheme = "";
 
             services.AddAuthentication(authenticationScheme)
                 .AddJwtBearer(options =>
@@ -97,8 +99,11 @@ namespace AlphabetUpdateServer
                 })
                 .AddBasicAuth(null);
 
+            services.AddHttpClient();
             services.AddScoped<ILauncherService, LauncherService>();
-            services.AddScoped<IUpdateService, UpdateService>();
+            services.AddScoped<IScanFileService, ScanFileService>();
+            services.AddScoped<IUpdateService, OutputDirectoryUpdater>();
+            services.AddScoped<IUpdateService, ExternalServerUpdater>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IClientAddressResolver, RemoteClientAddressResolver>();
         }

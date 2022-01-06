@@ -9,60 +9,28 @@ using AlphabetUpdateServer.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AlphabetUpdateServer.Services
+namespace AlphabetUpdateServer.Services.Updater
 {
-    public class UpdateService : IUpdateService
+    public class OutputDirectoryUpdater : IUpdateService
     {
         private readonly UpdateFileOptions options;
-        private readonly ILogger<UpdateService> logger;
+        private readonly ILogger<OutputDirectoryUpdater> logger;
         
-        public UpdateService(
+        public OutputDirectoryUpdater(
             IOptions<UpdateFileOptions> opts,
-            ILogger<UpdateService> log)
+            ILogger<OutputDirectoryUpdater> log)
         {
             options = opts.Value;
             logger = log;
         }
-
-        public async Task<UpdateFileCollection> ScanFiles()
-        {
-            var list = new List<UpdateFile>();
-
-            var dir = new DirectoryInfo(options.InputDir);
-            var files = dir.EnumerateFiles("*.*", SearchOption.AllDirectories);
-
-            foreach (var file in files)
-            {
-                var underPath = file.FullName
-                    .Replace(options.InputDir, "");
-                underPath = IoHelper.NormalizePath(underPath, fullPath: false);
-
-                var escapedPath = underPath.Replace('\\', '/');
-                var hash = await Task.Run(() => CryptoHelper.HashMd5(file.FullName));
-                var f = new UpdateFile
-                {
-                    Hash = CryptoHelper.ToHexString(hash),
-                    Path = escapedPath,
-                    Tags = null,
-                    Url = null
-                };
-
-                list.Add(f);
-            }
-
-            return new UpdateFileCollection()
-            {
-                Files = list.ToArray(),
-                HashAlgorithm = "md5",
-                LastUpdate = DateTime.Now
-            };
-        }
         
-        public async Task<UpdateFileCollection> UpdateFiles(UpdateFileCollection updateFiles)
+        public async Task<UpdateFileCollection> Update(UpdateFileCollection updateFiles)
         {
             if (updateFiles.Files == null)
                 return updateFiles;
-            
+
+            logger.LogInformation("Output directory: {0}", options.OutputDir);
+
             if (!Directory.Exists(options.OutputDir))
                 Directory.CreateDirectory(options.OutputDir);
             var outFilesArr = Directory.GetFiles(options.OutputDir, "*.*", SearchOption.AllDirectories);
