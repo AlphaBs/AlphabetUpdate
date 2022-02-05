@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using log4net;
 
 namespace AlphabetUpdate.Client.ProcessManage
 {
     public class ProcessManager
     {
-        private ILog logger = LogManager.GetLogger(nameof(ProcessManager));
+        private readonly ILogger<ProcessManager> _logger;
 
         public event EventHandler<ProcessResult>? Exited;
         public bool LogOutput { get; set; }
@@ -18,17 +18,18 @@ namespace AlphabetUpdate.Client.ProcessManage
         public Exception? ProcessException { get; private set; }
         private string? lastOutput;
         
-        public ProcessManager(Process proc, ProcessInteractor[]? interactors)
+        public ProcessManager(Process proc, ProcessInteractor[]? interactors, ILogger<ProcessManager> logger)
         {
             Process = proc;
             processInteractors = interactors;
+            _logger = logger;
         }
 
         private readonly ProcessInteractor[]? processInteractors;
 
         public void Start()
         {
-            logger.Info("Setting Process");
+            _logger.LogInformation("Setting Process");
             ProcessException = null;
             Process.StartInfo.UseShellExecute = false;
             Process.StartInfo.RedirectStandardError = true;
@@ -37,7 +38,7 @@ namespace AlphabetUpdate.Client.ProcessManage
             Process.OutputDataReceived += Process_OutputDataReceived;
             Process.Exited += Process_Exited;
 
-            logger.Info("Start Process");
+            _logger.LogInformation("Start Process");
             Process.Start();
             
             Process.BeginErrorReadLine();
@@ -81,7 +82,7 @@ namespace AlphabetUpdate.Client.ProcessManage
         void OnProcessOutput(string msg)
         {
             if (LogOutput)
-                logger.Info(msg);
+                _logger.LogInformation(msg);
             if (LogOutputDebug)
                 Debug.WriteLine(msg);
             lastOutput = msg;
@@ -101,7 +102,7 @@ namespace AlphabetUpdate.Client.ProcessManage
 
         private void Process_Exited(object? sender, EventArgs e)
         {
-            logger.Info("Process Exited");
+            _logger.LogInformation("Process Exited");
 
             ProcessResult result = new ProcessResult(Process.ExitCode)
             {

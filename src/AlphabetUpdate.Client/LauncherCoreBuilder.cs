@@ -1,4 +1,5 @@
-﻿using AlphabetUpdate.Client.PatchHandler;
+﻿using AlphabetUpdate.Client.Patch;
+using AlphabetUpdate.Client.PatchHandler;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,13 +12,13 @@ namespace AlphabetUpdate.Client
     {
         public LauncherCoreBuilder(string path)
         {
-            this.ClientPath = path;
-            this.PatchProcess = new PatchProcess.PatchProcessBuilder(path);
+            this.BasePath = path;
+            this.PatchProcess = new PatchProcess();
         }
 
-        public string ClientPath { get; private set; }
+        public string BasePath { get; private set; }
 
-        public PatchProcess.PatchProcessBuilder PatchProcess { get; private set; }
+        public PatchProcess PatchProcess { get; private set; }
 
         protected readonly List<ProcessManage.ProcessInteractor> interactors
             = new List<ProcessManage.ProcessInteractor>();
@@ -30,8 +31,8 @@ namespace AlphabetUpdate.Client
         public BaseLauncherCore Build()
         {
             return new BaseLauncherCore(
-                ClientPath,
-                PatchProcess.Build(),
+                BasePath,
+                PatchProcess,
                 interactors.ToArray());
         }
     }

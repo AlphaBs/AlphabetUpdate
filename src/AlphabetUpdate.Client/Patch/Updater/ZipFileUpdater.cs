@@ -1,28 +1,16 @@
-﻿using System;
+﻿using AlphabetUpdate.Client.Patch.Handler;
+using AlphabetUpdate.Common.Helpers;
+using ICSharpCode.SharpZipLib.Zip;
+using System;
 using System.ComponentModel;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
-using AlphabetUpdate.Common.Helpers;
-using AlphabetUpdate.Common.Models;
-using ICSharpCode.SharpZipLib.Zip;
-using log4net;
 
-namespace AlphabetUpdate.Client.PatchHandler
+namespace AlphabetUpdate.Client.Patch.Updater
 {
-    public class ZipFileUpdater : IPatchHandler
+    public class ZipFileUpdater : PatchHandlerBase<ZipFileUpdateSetting>
     {
-        private static readonly ILog logger = LogManager.GetLogger(nameof(ZipFileUpdater));
-
-        public event FileChangedEventHandler? FileChanged;
-        public event ProgressChangedEventHandler? ProgressChanged;
-
-        private readonly ZipFileUpdaterOptions options;
-
-        public ZipFileUpdater(ZipFileUpdaterOptions opts)
-        {
-            this.options = opts;
-        }
-
         private bool checkLatestVersion()
         {
             if (options.LastUpdate == null)
@@ -46,7 +34,7 @@ namespace AlphabetUpdate.Client.PatchHandler
             return options.LastUpdate >= options.LatestVersion;
         }
 
-        public async Task Patch(PatchContext context)
+        public override async Task Patch(CancellationToken? cancellationToken)
         {
             logger.Info("Start ZipFileUpdater");
 

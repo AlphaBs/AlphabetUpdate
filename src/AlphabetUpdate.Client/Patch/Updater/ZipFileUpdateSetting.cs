@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AlphabetUpdate.Client.PatchHandler
+namespace AlphabetUpdate.Client.Patch.Updater
 {
-    public class ZipFileUpdaterOptions
+    public class ZipFileUpdateSetting
     {
-        public ZipFileUpdaterOptions(DateTime latest)
+        public ZipFileUpdateSetting(DateTime latest)
         {
             this.LatestVersion = latest;
         }
