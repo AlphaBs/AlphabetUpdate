@@ -22,7 +22,7 @@ namespace AlphabetUpdate.Client.UpdateServer
         private readonly HttpClient httpClient;
         private readonly string host;
 
-        private async Task<T> Get<T>(string path)
+        private async Task<T?> Get<T>(string path)
         {
             var res = await httpClient.GetAsync($"{host}/{path}");
             var resStr = await res.Content.ReadAsStringAsync();

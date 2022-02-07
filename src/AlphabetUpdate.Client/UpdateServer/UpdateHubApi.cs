@@ -25,7 +25,7 @@ namespace AlphabetUpdate.Client.UpdateServer
         private readonly string host;
         private readonly string serverId;
 
-        private async Task<T> Get<T>(string path)
+        private async Task<T?> Get<T>(string path)
         {
             var res = await httpClient.GetAsync($"{host}/{path}");
             var resStr = await res.Content.ReadAsStringAsync();
