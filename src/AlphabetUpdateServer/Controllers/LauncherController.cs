@@ -29,6 +29,7 @@ namespace AlphabetUpdateServer.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> Get()
         {
             return Ok(await launcher.GetCache());
