@@ -29,35 +29,6 @@ namespace AlphabetUpdateServer.Core
             await sourceStream.CopyToAsync(destinationStream);
         }
         
-        public static void DeleteEmptyDirs(string dir)
-        {
-            if (string.IsNullOrEmpty(dir))
-                throw new ArgumentException(
-                    "Starting directory is a null reference or an empty string", 
-                    "dir");
-            
-            try
-            {
-                foreach (var d in Directory.EnumerateDirectories(dir))
-                {
-                    DeleteEmptyDirs(d);
-                }
-
-                var entries = Directory.EnumerateFileSystemEntries(dir);
-
-                if (!entries.Any())
-                {
-                    try
-                    {
-                        Directory.Delete(dir);
-                    }
-                    catch (UnauthorizedAccessException) { }
-                    catch (DirectoryNotFoundException) { }
-                }
-            }
-            catch (UnauthorizedAccessException) { }
-        }
-        
         public static async Task<T?> ReadJson<T>(string path)
         {
             var content = await File.ReadAllTextAsync(path);

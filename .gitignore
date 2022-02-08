@@ -238,6 +238,4 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 release/
-/volume/in
-/volume/out
-/volume/nginx
+/volume

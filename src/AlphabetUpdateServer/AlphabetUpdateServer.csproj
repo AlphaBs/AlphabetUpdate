@@ -10,6 +10,9 @@
 
   <ItemGroup>
     <Content Remove="appsettings.Devlopment.json" />
+    <Content Remove="launcher.json" />
+    <Content Remove="launcherInfo.json" />
+	  <Content Remove="files.json"/>
   </ItemGroup>
 
   <ItemGroup>

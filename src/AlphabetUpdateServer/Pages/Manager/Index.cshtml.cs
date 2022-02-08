@@ -2,11 +2,13 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AlphabetUpdate.Common.Models;
+using AlphabetUpdateServer.Models;
 using AlphabetUpdateServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AlphabetUpdateServer.Pages.Manager
 {
@@ -15,13 +17,16 @@ namespace AlphabetUpdateServer.Pages.Manager
     {
         private readonly ILauncherService launcher;
         private readonly ILogger<Index> logger;
+        private readonly UpdateFileOptions updateFileOptions;
 
         public Index(
             ILauncherService launcherService,
-            ILogger<Index> log)
+            ILogger<Index> log,
+            IOptions<UpdateFileOptions> opts)
         {
             launcher = launcherService;
             logger = log;
+            updateFileOptions = opts.Value;
         }
 
         public string? Status;
@@ -29,19 +34,74 @@ namespace AlphabetUpdateServer.Pages.Manager
         public LauncherInfo? Info;
         public UpdateFileCollection? Files;
         
-        public async Task<IActionResult> OnGetAsync(string? status, string? message)
+        private LauncherInfo createDefaultLauncherInfo()
+        {
+            return new LauncherInfo
+            {
+                Name = updateFileOptions.Name,
+                LauncherServer = updateFileOptions.BaseUrl,
+                WhitelistFiles = new string[]
+                {
+                    "options.txt",
+                    "optionsof.txt",
+                    "optionsshader.txt"
+                },
+                WhitelistDirs = new string[]
+                {
+                    "saves",
+                    "screenshots",
+                    "journeymap"
+                }
+            };
+        }
+
+        private UpdateFileCollection createDefaultFileCollection()
+        {
+            return new UpdateFileCollection
+            {
+                HashAlgorithm = "md5"
+            };
+        }
+
+        private async Task setLauncherInfoForView()
         {
             try
             {
                 Info = await launcher.GetInfo();
+            }
+            catch (Exception e)
+            {
+                this.Status += "\nInfoError: " + e.Message;
+            }
+
+            if (Info == null)
+                Info = createDefaultLauncherInfo();
+        }
+
+        private async Task setUpdateFilesForView()
+        {
+            try
+            {
                 Files = await launcher.GetFiles();
             }
             catch (Exception e)
             {
-                
+                this.Status += "\nFilesError: " + e.Message;
             }
 
-            this.Status = status;
+
+            if (Files == null)
+                Files = createDefaultFileCollection();
+        }
+
+        public async Task<IActionResult> OnGetAsync(string? status, string? message)
+        {
+            this.Status = "";
+
+            await setLauncherInfoForView();
+            await setUpdateFilesForView();
+
+            this.Status += status;
             this.Message = message;
             return Page();
         }
@@ -81,11 +141,11 @@ namespace AlphabetUpdateServer.Pages.Manager
             }
             catch (ArgumentException e)
             {
-                Info = await launcher.GetInfo();
+                await setLauncherInfoForView();
                 Message = "업데이트 실패: " + e.Message;
             }
             
-            Files = await launcher.GetFiles();
+            await setUpdateFilesForView();
             return Page();
         }
     }

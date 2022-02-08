@@ -6,6 +6,7 @@ using AlphabetUpdateServer.Services;
 using AlphabetUpdateServer.Services.Updater;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace AlphabetUpdateServer.Pages.Manager
@@ -15,18 +16,23 @@ namespace AlphabetUpdateServer.Pages.Manager
         private readonly ILogger<Update> logger;
         private readonly IScanFileService scanner;
         private readonly IEnumerable<IUpdateService> updaters;
-        
+        private readonly ILauncherService launcher;
+
         public Update(
             ILogger<Update> log,
             IScanFileService scanService,
-            IEnumerable<IUpdateService> updateServices)
+            IServiceProvider serviceProvider, 
+            ILauncherService launcher)
         {
             logger = log;
-            updaters = updateServices;
+            updaters = serviceProvider.GetServices<IUpdateService>();
             scanner = scanService;
+            this.launcher = launcher;
         }
 
         public UpdateFileCollection? Files;
+        public string? Message;
+        public string? DetailedMessage;
         
         public void OnGet()
         {
@@ -43,11 +49,13 @@ namespace AlphabetUpdateServer.Pages.Manager
                 {
                     Files = await updater.Update(Files);
                 }
+
+                await launcher.UpdateFiles(Files);
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                throw;
+                Message = "업데이트 실패! 오류가 발생했습니다";
+                DetailedMessage = e.ToString();
             }
             
             return Page();

@@ -62,8 +62,8 @@ namespace AlphabetUpdateServer.Services.Updater
                 await Task.Run(() => File.Delete(remainFile));
                 logger.LogInformation("Delete remain file: {Name}", remainFile);
             }
-            
-            Util.DeleteEmptyDirs(options.OutputDir);
+
+            IoHelper.DeleteEmptyDirectories(options.OutputDir);
             updateFiles.LastUpdate = DateTime.Now;
 
             return updateFiles;

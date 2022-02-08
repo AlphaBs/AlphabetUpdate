@@ -1,21 +1,16 @@
 ﻿@page
-@model AlphabetUpdateServer.Pages.Manager.Update
-
+@model AlphabetUpdateServer.Pages.Manager.ScanFileModel
 @{
     Layout = "_Layout";
 }
 
-<h2>파일 업데이트 완료</h2>
+<h2>파일 스캔 결과</h2>
 <a asp-page="./Index"><h3>돌아가기</h3></a>
-<h3>결과</h3>
-@if (!string.IsNullOrEmpty(Model.Message))
-{
-    <h3>@Model.Message</h3>
-}
-@if (!string.IsNullOrEmpty(Model.DetailedMessage))
-{
-    <pre>@Model.DetailedMessage</pre>
-}
+<form method="POST" asp-page="Update">
+    <input type="submit" value="파일 업데이트 시작"/>
+</form>
+
+<h3>파일 스캔 결과</h3>
 @if (Model.Files?.Files == null || Model.Files.Files.Length == 0)
 {
     <p>(경고) 업데이트 파일이 없습니다</p>
@@ -40,4 +35,3 @@ else
         }
     </table>
 }
-<a asp-page="./Index"><h2>돌아가기</h2></a>

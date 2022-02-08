@@ -8,12 +8,11 @@
 
 @if (!string.IsNullOrWhiteSpace(Model.Status))
 {
-    <h3>@Model.Status</h3>
+    <h3 style="white-space: pre-wrap">@Model.Status</h3>
 }
 
 <h2>런처 정보</h2>
 <form method="POST">
-    <br/>
     <label for="name">이름: </label>
     <input id="name" name="name" type="text" readonly value="@Model.Info?.Name"/>
 

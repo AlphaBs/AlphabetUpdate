@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AlphabetUpdate.Common.Helpers
@@ -26,6 +27,16 @@ namespace AlphabetUpdate.Common.Helpers
             foreach (string target_dir1 in directories)
                 DeleteDirectory(target_dir1);
             Directory.Delete(target_dir, true);
+        }
+
+        public static void DeleteEmptyDirectories(string startPath)
+        {
+            foreach (var dir in Directory.GetDirectories(startPath))
+            {
+                DeleteEmptyDirectories(dir);
+                if (!Directory.EnumerateFileSystemEntries(dir).Any())
+                    Directory.Delete(dir);
+            }
         }
 
         public static async Task CopyFileAsync(string from, string to)
