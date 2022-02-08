@@ -12,6 +12,7 @@ services:
       - install
     environment:
       - "START_OPTION=INSTALL"
+      - "PathBase=/updateserver"
 
   asp:
     image: ksi123456ab/alphabet-update-server
@@ -20,6 +21,7 @@ services:
       - ./volume/appsettings.json:/app/appsettings.json
     environment:
       - "START_OPTION=SERVER"
+    restart: always
 
   # nginx:1.12-alpine
   nginx:
@@ -30,11 +32,12 @@ services:
       - ./volume/nginx.conf:/etc/nginx/nginx.conf
       - ./volume/out:/volume/out
       - ./volume/nginx:/volume/nginx
+    restart: always
 
   ftp:
     image: delfer/alpine-ftp-server
     environment:
-      USERS: "${FTP_USER:-admin}|${FTP_PASS:-pass}|/home/ftp"
+      USERS: "${FTP_USER:-admin}|${FTP_PASS:?pass}|/home/ftp"
       ADDRESS: "${FTP_ADDR}"
       MIN_PORT: "${FTP_PASVPORT_MIN:-30000}"
       MAX_PORT: "${FTP_PASVPORT_MAX:-30010}"
@@ -44,3 +47,4 @@ services:
       - "${FTP_PASVPORT_MIN:-30000}-${FTP_PASVPORT_MAX:-30010}:${FTP_PASVPORT_MIN:-30000}-${FTP_PASVPORT_MAX:-30010}"
     volumes:
       - ./volume/in:/home/ftp
+    restart: always
