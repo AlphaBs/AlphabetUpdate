@@ -111,6 +111,22 @@ namespace AlphabetUpdateServer
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, ILogger<Startup> logger)
         {
+            var pathBase = configuration.GetValue<string>("PathBase");
+            if (!string.IsNullOrEmpty(pathBase))
+            {
+                logger.LogInformation("Set PathBase to {PathBase}", pathBase);
+
+                // https://github.com/dotnet/aspnetcore/issues/38448
+                // app.UsePathBase(pathBase);
+
+                // use alternative method
+                app.Use((context, next) =>
+                {
+                    context.Request.PathBase = pathBase;
+                    return next();
+                });
+            }
+
             if (environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
