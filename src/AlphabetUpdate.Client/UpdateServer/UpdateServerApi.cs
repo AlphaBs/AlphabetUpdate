@@ -8,6 +8,9 @@ namespace AlphabetUpdate.Client.UpdateServer
 {
     public class UpdateServerApi : IUpdateServerApi
     {
+        private readonly HttpClient _httpClient;
+        private readonly string _host;
+
         public UpdateServerApi(string host) : this(host, HttpHelper.HttpClient)
         {
             
@@ -15,18 +18,15 @@ namespace AlphabetUpdate.Client.UpdateServer
         
         public UpdateServerApi(string host, HttpClient http)
         {
-            this.httpClient = http;
-            this.host = host;
+            this._httpClient = http;
+            this._host = host;
         }
-
-        private readonly HttpClient httpClient;
-        private readonly string host;
 
         private async Task<T?> Get<T>(string path)
         {
-            var res = await httpClient.GetAsync($"{host}/{path}");
+            var res = await _httpClient.GetAsync($"{_host}/{path}");
             var resStr = await res.Content.ReadAsStringAsync();
-            return JsonSerializer.Deserialize<T>(resStr, JsonHelper.JsonOptions); // allow null
+            return JsonSerializer.Deserialize<T>(resStr, JsonHelper.JsonOptions);
         }
 
         public Task<LauncherMetadata?> GetLauncherMetadata()

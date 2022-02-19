@@ -44,18 +44,13 @@ namespace AlphabetUpdate.Client.Patch.Core
             services.Add(service);
         }
 
-        public void AddPatchService(IPatchService service)
-        {
-            AddPatchServiceActivator(new PatchServiceObject(service));
-        }
-
         public void AddPatchService<TService>() where TService : PatchServiceBase
         {
             AddPatchServiceActivator(new PatchServiceActivator<TService>());
         }
 
         public void AddPatchService<TService, TSetting>(TSetting setting)
-            where TService : PatchServiceBase<TSetting>
+            where TService : notnull
             where TSetting : class
         {
             AddPatchServiceActivator(new PatchServiceActivator<TService, TSetting>(setting));

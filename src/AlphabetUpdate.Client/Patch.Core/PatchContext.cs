@@ -13,7 +13,8 @@ namespace AlphabetUpdate.Client.Patch.Core
 
         public PatchContext(PatchOptions options, IServiceProvider serviceProvider)
         {
-            BasePath = options.BasePath ?? throw new ArgumentException("options.BasePath is null");
+            BasePath = IoHelper.NormalizePath(options.BasePath
+                ?? throw new ArgumentException("options.BasePath is null"));
             ServiceProvider = serviceProvider;
         }
     }

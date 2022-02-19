@@ -54,7 +54,7 @@ namespace AlphabetUpdate.Client.Patch.Services
 
             if (tagStorage.TryGetValue(tagname, out filelist))
             {
-                if (filelist.Contains(tagname))
+                if (filelist.Contains(filepath))
                     return false;
                 else
                 {
@@ -64,7 +64,7 @@ namespace AlphabetUpdate.Client.Patch.Services
             }
             else
             {
-                filelist = new HashSet<string> { tagname };
+                filelist = new HashSet<string> { filepath };
                 tagStorage.Add(tagname, filelist);
                 return true;
             }

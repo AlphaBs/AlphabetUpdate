@@ -5,7 +5,6 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using AlphabetUpdate.Client;
-using AlphabetUpdate.Client.PatchHandler;
 using AlphabetUpdate.Client.Patch;
 using AlphabetUpdate.Client.ProcessManage;
 using AlphabetUpdate.Client.UpdateServer;

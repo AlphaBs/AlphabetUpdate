@@ -144,8 +144,8 @@ namespace AlphabetUpdate.Client.Patch.Handlers
                         await _fileEnabler.DisableFile(path);
                 }
 
-                if (tags != null && Setting.SaveFileTags)
-                    _tagService?.Tags.AddFile(path, tags);
+                if (Setting.SaveFileTags && item.Tags != null)
+                    _tagService?.Tags.AddFile(path, item.Tags);
                 progressed++;
             }
             
@@ -157,6 +157,9 @@ namespace AlphabetUpdate.Client.Patch.Handlers
             int retryCount = 3;
             if (Setting != null)
                 retryCount = Setting.RetryCount;
+
+            Exception? lastEx = null;
+            bool lastFileCheckResult = false;
 
             for (int i = 0; i < retryCount; i++)
             {
@@ -175,7 +178,7 @@ namespace AlphabetUpdate.Client.Patch.Handlers
 
                     await webClient.DownloadFileTaskAsync(url, path);
 
-                    if (CheckFileValidation(path, file.Hash, checkHash: checkHash))
+                    if (lastFileCheckResult = CheckFileValidation(path, file.Hash, checkHash: checkHash))
                         return true;
                 }
                 catch (PatchException)
@@ -186,10 +189,16 @@ namespace AlphabetUpdate.Client.Patch.Handlers
                 {
                     _logger.LogError("CheckAndDownloadFile, try {RetryCount} times", i+1);
                     _logger.LogError("Exception: {Exception}", ex);
+                    lastEx = ex;
                 }
             }
 
-            throw new PatchException("download fail: " + path);
+            if (lastEx != null)
+                throw new PatchException("download fail: " + path, lastEx);
+            else if (!lastFileCheckResult)
+                throw new PatchException("invalid file hash: " + path);
+            else
+                throw new PatchException("download fail: " + path);
         }
 
         private string? GetUrl(UpdateFile file)

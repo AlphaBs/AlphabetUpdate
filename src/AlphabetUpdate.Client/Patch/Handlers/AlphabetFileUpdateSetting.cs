@@ -19,7 +19,7 @@ namespace AlphabetUpdate.Client.Patch.Handlers
         public FileTagOptions DefaultFileTagOption { get; set; } = FileTagOptions.Disable;
         public Dictionary<string, FileTagOptions>? TagOptions { get; set; }
         public string[]? Tags { get; set; }
-        public bool SaveFileTags { get; set; }
-        public bool SaveUpdateResultTag { get; set; }
+        public bool SaveFileTags { get; set; } = true;
+        public bool SaveUpdateResultTag { get; set; } = true;
     }
 }

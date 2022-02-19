@@ -5,13 +5,24 @@ using System.Text;
 
 namespace AlphabetUpdate.Client.Patch.Core.Services
 {
-    public class PatchServiceActivator<T> : IPatchServiceActivator where T : PatchServiceBase
+    public class PatchServiceActivator<TService> : IPatchServiceActivator
+        where TService : notnull
     {
         public IPatchService CreateService(PatchContext context)
         {
-            var service = context.ServiceProvider.GetRequiredService<T>();
-            service.PatchContext = context;
-            return service;
+            var service = context.ServiceProvider.GetRequiredService<TService>();
+            if (service is IPatchService patchService)
+            {
+                if (patchService is PatchServiceBase patchServiceBase)
+                {
+                    patchServiceBase.PatchContext = context;
+                    return patchServiceBase;
+                }
+
+                return patchService;
+            }
+            else
+                throw new InvalidCastException(typeof(TService) + " cannot be IPatchService");
         }
     }
 }

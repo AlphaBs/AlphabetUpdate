@@ -8,5 +8,10 @@ namespace AlphabetUpdate.Client.Patch.Core
         {
 
         }
+
+        public PatchException(string message, Exception inner) : base(message, inner)
+        {
+
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AlphabetUpdate.Client.Patch.Core.Services;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,8 +19,10 @@ namespace AlphabetUpdate.Client.Patch.Core.Handlers
 
         public IPatchHandler CreateHandler(PatchContext context)
         {
-            var activator = new PatchServiceActivator<THandler, TSetting>(_setting);
-            return (THandler)activator.CreateService(context);
+            var service = ActivatorUtilities.GetServiceOrCreateInstance<THandler>(context.ServiceProvider);
+            service.PatchContext = context;
+            service.Setting = _setting;
+            return service;
         }
     }
 }

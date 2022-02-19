@@ -19,11 +19,14 @@ namespace AlphabetUpdate.Client.Patch.Handlers
             LauncherMetadata metadata, AlphabetFileUpdateSetting settings)
         {
             settings.BaseUrl = metadata.Launcher?.LauncherServer;
-            
-            // add whitelist
+            settings.UpdateFiles = metadata.Files;
+            AddAlphabetFileUpdater(b, settings);
+        }
 
-            if (metadata.Files != null)
-                b.AddPatchHandler<AlphabetFileUpdater, AlphabetFileUpdateSetting>(settings);
+        public static void AddAlphabetFileUpdater(this PatchProcess b,
+            AlphabetFileUpdateSetting settings)
+        {
+            b.AddPatchHandler<AlphabetFileUpdater, AlphabetFileUpdateSetting>(settings);
         }
 
         public static void AddZipFileUpdater(this PatchProcess b,
@@ -32,10 +35,10 @@ namespace AlphabetUpdate.Client.Patch.Handlers
             b.AddPatchHandler<ZipFileUpdater, ZipFileUpdateSetting>(settings);
         }
 
-        public static void AddFileFilter(this PatchProcess b,
+        public static void AddFileFilter(this PatchProcess p,
             FileFilterSetting settings)
         {
-            b.AddPatchHandler<FileFilterHandler ,FileFilterSetting>(settings);
+            p.AddPatchHandler<FileFilterHandler ,FileFilterSetting>(settings);
         }
 
         // PatchServices
@@ -43,23 +46,13 @@ namespace AlphabetUpdate.Client.Patch.Handlers
         public static void AddWhitelistFileService(this PatchProcess b,
             WhitelistFileSetting setting)
         {
-            b.AddPatchService<WhitelistFileService, WhitelistFileSetting>(setting);
+            b.AddPatchService<IWhitelistFileService, WhitelistFileSetting>(setting);
         }
 
         public static void AddPatchProgressService(this PatchProcess b,
             PatchProgressSetting setting)
         {
-            b.AddPatchService<PatchProgressService, PatchProgressSetting>(setting);
-        }
-
-        public static void AddFileTagService(this PatchProcess b)
-        {
-            b.AddPatchService(new FileTagService());
-        }
-
-        public static void AddFileExtensionEnabler(this PatchProcess b)
-        {
-            b.AddPatchService(new FileExtensionEnabler());
+            b.AddPatchService<IPatchProgressService, PatchProgressSetting>(setting);
         }
     }
 }

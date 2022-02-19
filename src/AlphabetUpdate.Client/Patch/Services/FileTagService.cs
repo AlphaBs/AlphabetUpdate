@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AlphabetUpdate.Client.Patch.Services
 {
-    public class FileTagService : IPatchService, IFileTagService
+    public class FileTagService : IFileTagService
     {
         public static readonly string TagIgnore = "ign";
 
@@ -20,11 +20,6 @@ namespace AlphabetUpdate.Client.Patch.Services
         public bool CheckIgnoreFile(string filepath)
         {
             return Tags.HasTag(filepath, TagIgnore);
-        }
-
-        public Task Initialize()
-        {
-            return Task.CompletedTask;
         }
     }
 }

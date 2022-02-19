@@ -9,8 +9,6 @@ namespace AlphabetUpdate.Client.Patch.Services
     // 진행률 표시
     public class PatchProgressService : PatchServiceBase<PatchProgressSetting>, IPatchProgressService
     {
-        public event EventHandler<string>? Message;
-
         public override Task Initialize()
         {
             return Task.CompletedTask;

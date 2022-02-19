@@ -6,7 +6,7 @@ using System.Text;
 namespace AlphabetUpdate.Client.Patch.Core.Services
 {
     public class PatchServiceActivator<TService, TSetting> : IPatchServiceActivator
-        where TService : PatchServiceBase<TSetting>
+        where TService : notnull
         where TSetting : class
     {
         private readonly TSetting _setting;
@@ -19,9 +19,14 @@ namespace AlphabetUpdate.Client.Patch.Core.Services
         public IPatchService CreateService(PatchContext context)
         {
             var service = context.ServiceProvider.GetRequiredService<TService>();
-            service.PatchContext = context;
-            service.Setting = _setting;
-            return service;
+            if (service is PatchServiceBase<TSetting> patchService)
+            {
+                patchService.PatchContext = context;
+                patchService.Setting = _setting;
+                return patchService;
+            }
+            else
+                throw new InvalidCastException($"{typeof(TService)} cannot be PatchServiceBase<{typeof(TSetting)}>");
         }
     }
 }

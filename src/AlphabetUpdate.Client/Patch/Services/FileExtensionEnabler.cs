@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace AlphabetUpdate.Client.Patch.Services
 {
-    public class FileExtensionEnabler : IPatchService, IFileEnabler
+    public class FileExtensionEnabler : IFileEnabler
     {
         private string getDisabledFilePath(string path)
         {
@@ -19,7 +19,7 @@ namespace AlphabetUpdate.Client.Patch.Services
 
         public Task<bool> CanEnable(string path)
         {
-            var result = File.Exists(path);
+            var result = File.Exists(getDisabledFilePath(path));
             return Task.FromResult(result);
         }
 
@@ -44,11 +44,6 @@ namespace AlphabetUpdate.Client.Patch.Services
                 File.Delete(disablePath);
             File.Move(path, disablePath);
 
-            return Task.CompletedTask;
-        }
-
-        public Task Initialize()
-        {
             return Task.CompletedTask;
         }
     }
