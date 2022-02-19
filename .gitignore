@@ -238,4 +238,7 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 release/
-/volume
+/docker_bundle/volume/in
+/docker_bundle/volume/out
+/docker_bundle/volume/vnstat
+/docker_bundle/volume/files.json

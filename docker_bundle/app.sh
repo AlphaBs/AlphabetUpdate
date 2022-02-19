@@ -9,8 +9,9 @@ elif [[ $1 == "stop" ]]; then
 elif [[ $1 == "down" ]]; then
     docker-compose down
 elif [[ $1 == "update" ]]; then
-    docker pull ksi123456ab/alphabet-update-server
-    docker-compose restart
+    docker-compose pull
+    docker-compose up -d --remove-orphans
+    docker image prune
 else
     echo "No matching command"
 fi

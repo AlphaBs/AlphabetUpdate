@@ -29,9 +29,9 @@ services:
     ports:
       - "${NGINX_PORT:-80}:80"
     volumes:
+      - ./volume/nginx:/volume/nginx
       - ./volume/nginx.conf:/etc/nginx/nginx.conf
       - ./volume/out:/volume/out
-      - ./volume/nginx:/volume/nginx
     restart: always
 
   ftp:
@@ -48,3 +48,30 @@ services:
     volumes:
       - ./volume/in:/home/ftp
     restart: always
+
+  vnstat:
+    image: vergoh/vnstat:latest
+    restart: unless-stopped
+    network_mode: "host"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./volume/vnstat:/var/lib/vnstat
+    environment:
+      - HTTP_PORT=0
+
+  vnstati:
+    image: vergoh/vnstat:latest
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      - ./volume/vnstat:/var/lib/vnstat:ro
+    environment:
+      - HTTP_PORT=38685
+      - HTTP_LOG=/dev/stdout
+      - LARGE_FONTS=0
+      - CACHE_TIME=1
+      - RATE_UNIT=1
+      - PAGE_REFRESH=0
+      - RUN_VNSTATD=0
