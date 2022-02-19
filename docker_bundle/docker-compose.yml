@@ -12,7 +12,7 @@ services:
       - install
     environment:
       - "START_OPTION=INSTALL"
-      - "PathBase=/updateserver"
+      - "PathBase=${ASP_PATHBASE:-/updateserver}"
 
   asp:
     image: ksi123456ab/alphabet-update-server
@@ -21,6 +21,8 @@ services:
       - ./volume/appsettings.json:/app/appsettings.json
     environment:
       - "START_OPTION=SERVER"
+      - "PathBase=${ASP_PATHBASE:-/updateserver}"
+      - "Logging__Console__FormatterName=Simple"
     restart: always
 
   # nginx:1.12-alpine
