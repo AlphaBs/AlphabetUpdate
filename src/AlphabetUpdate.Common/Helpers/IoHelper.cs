@@ -42,7 +42,7 @@ namespace AlphabetUpdate.Common.Helpers
         public static async Task CopyFileAsync(string from, string to)
         {
             using var fromStream = File.OpenRead(from);
-            using var toStream = File.OpenWrite(to);
+            using var toStream = File.Create(to);
             await fromStream.CopyToAsync(toStream);
         }
     }
