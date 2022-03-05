@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build-env
 
 # Copy csproj and restore as distinct layers
 COPY ./src/AlphabetUpdate.Common/*.csproj /src/AlphabetUpdate.Common/
@@ -14,7 +14,7 @@ WORKDIR /src/AlphabetUpdateServerInstaller
 RUN dotnet publish -c Release -o /out --no-restore
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:5.0
+FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
 COPY --from=build-env /out .
 COPY ./docker_bundle/start_update_server.sh /app/start_update_server.sh
