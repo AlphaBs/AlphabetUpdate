@@ -34,7 +34,7 @@ namespace AlphabetUpdateServer.Services.Updater
             if (!Directory.Exists(options.OutputDir))
                 Directory.CreateDirectory(options.OutputDir);
             var outFilesArr = Directory.GetFiles(options.OutputDir, "*.*", SearchOption.AllDirectories);
-            var outFilesSet = new HashSet<string>(outFilesArr);
+            var outFilesSet = new HashSet<string>();
 
             foreach (var inFile in updateFiles.Files)
             {
@@ -54,7 +54,7 @@ namespace AlphabetUpdateServer.Services.Updater
 
                 await IoHelper.CopyFileAsync(realPath, outFilePath);
                 logger.LogInformation("Copy update file: {Input} -> {Output}", realPath, outFilePath);
-                outFilesSet.Remove(outFilePath.ToLowerInvariant());
+                outFilesSet.Remove(outFilePath);
             }
 
             foreach (var remainFile in outFilesSet)
