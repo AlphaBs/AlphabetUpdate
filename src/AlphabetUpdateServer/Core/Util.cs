@@ -39,6 +39,11 @@ namespace AlphabetUpdateServer.Core
         public static async Task<string> WriteJson(string path, object? obj)
         {
             var content = JsonSerializer.Serialize(obj, JsonHelper.JsonOptions);
+            var dirPath = Path.GetDirectoryName(path);
+
+            if (!string.IsNullOrEmpty(dirPath))
+                Directory.CreateDirectory(dirPath);
+
             await File.WriteAllTextAsync(path, content);
             return content;
         }
